@@ -1,0 +1,879 @@
+openapi: 3.0.3
+info:
+  title: Holocron - Library Management API
+  description: 書庫アプリのAPI仕様
+  version: 1.0.0
+  contact:
+    name: holocron
+
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+tags:
+  - name: Users
+    description: ユーザー管理
+  - name: Books
+    description: 書籍管理
+  - name: Loans
+    description: 貸出・返却
+
+security:
+  - BearerAuth: []
+
+paths:
+  /users:
+    post:
+      summary: ユーザー登録
+      description: Firebase Anonymous認証後、ユーザー名を設定して登録
+      operationId: postUsers
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: ユーザー名
+                  minLength: 1
+                  maxLength: 50
+      responses:
+        '201':
+          description: ユーザー登録成功
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - name
+                  - createdAt
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  createdAt:
+                    type: string
+                    format: date-time
+                  updatedAt:
+                    type: string
+                    format: date-time
+        '400':
+          description: リクエストが不正
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+        '401':
+          description: 認証が必要
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+        '409':
+          description: ユーザーが既に存在する
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+
+  /books:
+    post:
+      summary: 書籍登録（手動）
+      description: タイトル・著者などを直接指定して書籍を登録
+      operationId: postBooks
+      tags:
+        - Books
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - authors
+              properties:
+                title:
+                  type: string
+                  description: タイトル
+                authors:
+                  type: array
+                  items:
+                    type: string
+                  description: 著者リスト
+                publisher:
+                  type: string
+                  description: 出版社
+                publishedDate:
+                  type: string
+                  description: 出版日
+                thumbnailUrl:
+                  type: string
+                  format: uri
+                  description: サムネイル画像URL
+      responses:
+        '201':
+          description: 書籍登録成功
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - title
+                  - authors
+                  - status
+                  - createdAt
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  code:
+                    type: string
+                    description: バーコード（ISBN/雑誌コード/JANコード）
+                  title:
+                    type: string
+                  authors:
+                    type: array
+                    items:
+                      type: string
+                  publisher:
+                    type: string
+                  publishedDate:
+                    type: string
+                  thumbnailUrl:
+                    type: string
+                    format: uri
+                  status:
+                    type: string
+                    enum:
+                      - available
+                      - borrowed
+                  createdAt:
+                    type: string
+                    format: date-time
+        '400':
+          description: リクエストが不正
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+        '401':
+          description: 認証が必要
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+
+  /books/code:
+    post:
+      summary: 書籍登録（コード）
+      description: バーコード（ISBN/雑誌コード/JANコード）から外部APIで情報取得して登録
+      operationId: postBooksCode
+      tags:
+        - Books
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+              properties:
+                code:
+                  type: string
+                  description: バーコード（ISBN/雑誌コード/JANコード）
+      responses:
+        '201':
+          description: 書籍登録成功
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - title
+                  - authors
+                  - status
+                  - createdAt
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  code:
+                    type: string
+                    description: バーコード（ISBN/雑誌コード/JANコード）
+                  title:
+                    type: string
+                  authors:
+                    type: array
+                    items:
+                      type: string
+                  publisher:
+                    type: string
+                  publishedDate:
+                    type: string
+                  thumbnailUrl:
+                    type: string
+                    format: uri
+                  status:
+                    type: string
+                    enum:
+                      - available
+                      - borrowed
+                  createdAt:
+                    type: string
+                    format: date-time
+        '400':
+          description: リクエストが不正
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+        '401':
+          description: 認証が必要
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+        '404':
+          description: codeに該当する書籍情報が見つからない
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+        '409':
+          description: 書籍が既に登録されている
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+
+    get:
+      summary: 書籍一覧・検索
+      description: 書籍の一覧を取得。タイトル・著者で検索可能。貸出ステータスも含む。
+      operationId: getBooksCode
+      tags:
+        - Books
+      parameters:
+        - name: q
+          in: query
+          description: 検索キーワード（タイトル・著者）
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: 貸出ステータスでフィルタ
+          schema:
+            type: string
+            enum:
+              - available
+              - borrowed
+        - name: limit
+          in: query
+          description: 取得件数上限
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: offset
+          in: query
+          description: オフセット
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+      responses:
+        '200':
+          description: 書籍一覧
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - total
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - id
+                        - title
+                        - authors
+                        - status
+                        - createdAt
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        code:
+                          type: string
+                          description: バーコード（ISBN/雑誌コード/JANコード）
+                        title:
+                          type: string
+                        authors:
+                          type: array
+                          items:
+                            type: string
+                        publisher:
+                          type: string
+                        publishedDate:
+                          type: string
+                        thumbnailUrl:
+                          type: string
+                          format: uri
+                        status:
+                          type: string
+                          enum:
+                            - available
+                            - borrowed
+                        borrower:
+                          type: object
+                          required:
+                            - id
+                            - name
+                            - borrowedAt
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                            name:
+                              type: string
+                            borrowedAt:
+                              type: string
+                              format: date-time
+                        createdAt:
+                          type: string
+                          format: date-time
+                  total:
+                    type: integer
+        '401':
+          description: 認証が必要
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+
+  /books/{bookId}:
+    get:
+      summary: 書籍詳細取得
+      description: 指定した書籍の詳細情報を取得
+      operationId: getBooks
+      tags:
+        - Books
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          description: 書籍ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 書籍詳細
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - title
+                  - authors
+                  - status
+                  - createdAt
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  code:
+                    type: string
+                    description: バーコード（ISBN/雑誌コード/JANコード）
+                  title:
+                    type: string
+                  authors:
+                    type: array
+                    items:
+                      type: string
+                  publisher:
+                    type: string
+                  publishedDate:
+                    type: string
+                  thumbnailUrl:
+                    type: string
+                    format: uri
+                  status:
+                    type: string
+                    enum:
+                      - available
+                      - borrowed
+                  borrower:
+                    type: object
+                    required:
+                      - id
+                      - name
+                      - borrowedAt
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      name:
+                        type: string
+                      borrowedAt:
+                        type: string
+                        format: date-time
+                  createdAt:
+                    type: string
+                    format: date-time
+        '401':
+          description: 認証が必要
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errorCode
+                  - message
+                properties:
+                  errorCode:
+                    type: string
+                  message:
+                    type: string
+        '404':
+          description: 書籍が見つからない
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+
+    post:
+      summary: 書籍情報更新
+      description: 書籍の情報を更新する
+      operationId: postBooksBookId
+      tags:
+        - Books
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          description: 書籍ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: バーコード（ISBN/雑誌コード/JANコード）
+                title:
+                  type: string
+                  description: タイトル
+                authors:
+                  type: array
+                  items:
+                    type: string
+                  description: 著者リスト
+                publisher:
+                  type: string
+                  description: 出版社
+                publishedDate:
+                  type: string
+                  description: 出版日
+                thumbnailUrl:
+                  type: string
+                  format: uri
+                  description: サムネイル画像URL
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - title
+                  - authors
+                  - status
+                  - createdAt
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  code:
+                    type: string
+                    description: バーコード（ISBN/雑誌コード/JANコード）
+                  title:
+                    type: string
+                  authors:
+                    type: array
+                    items:
+                      type: string
+                  publisher:
+                    type: string
+                  publishedDate:
+                    type: string
+                  thumbnailUrl:
+                    type: string
+                    format: uri
+                  status:
+                    type: string
+                    enum:
+                      - available
+                      - borrowed
+                  createdAt:
+                    type: string
+                    format: date-time
+        '400':
+          description: リクエストが不正
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+        '401':
+          description: 認証が必要
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+        '404':
+          description: 書籍が見つからない
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+
+  /books/{bookId}/borrow:
+    post:
+      summary: 書籍を借りる
+      description: 指定した書籍を借りる。既に貸出中の場合はエラー。
+      operationId: postBooksBorrow
+      tags:
+        - Loans
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          description: 書籍ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 貸出成功
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - bookId
+                  - borrowerId
+                  - borrowedAt
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  bookId:
+                    type: string
+                    format: uuid
+                  borrowerId:
+                    type: string
+                    format: uuid
+                  borrowedAt:
+                    type: string
+                    format: date-time
+        '401':
+          description: 認証が必要
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+        '404':
+          description: 書籍が見つからない
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+        '409':
+          description: 既に貸出中
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+
+  /books/{bookId}/return:
+    post:
+      summary: 書籍を返却する
+      description: 指定した書籍を返却する。貸出中でない場合はエラー。
+      operationId: postBooksReturn
+      tags:
+        - Loans
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          description: 書籍ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 返却成功
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - title
+                  - authors
+                  - status
+                  - createdAt
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  code:
+                    type: string
+                    description: バーコード（ISBN/雑誌コード/JANコード）
+                  title:
+                    type: string
+                  authors:
+                    type: array
+                    items:
+                      type: string
+                  publisher:
+                    type: string
+                  publishedDate:
+                    type: string
+                  thumbnailUrl:
+                    type: string
+                    format: uri
+                  status:
+                    type: string
+                    enum:
+                      - available
+                      - borrowed
+                  borrower:
+                    type: object
+                    required:
+                      - id
+                      - name
+                      - borrowedAt
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      name:
+                        type: string
+                      borrowedAt:
+                        type: string
+                        format: date-time
+                  createdAt:
+                    type: string
+                    format: date-time
+        '401':
+          description: 認証が必要
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+        '404':
+          description: 書籍が見つからない
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+        '409':
+          description: 貸出中ではない
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Firebase ID Token
