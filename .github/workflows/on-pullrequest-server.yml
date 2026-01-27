@@ -1,0 +1,39 @@
+name: On Pull Request(Server)
+
+on:
+  pull_request:
+    branches: [ master ]
+    paths:
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
+
+jobs:
+  small-test:
+    name: Small Test
+    uses: ./.github/workflows/job-server-test-small.yml
+    with:
+      with-coverage: true
+
+  medium-test:
+    name: Medium Test
+    needs:
+      - small-test
+    uses: ./.github/workflows/job-server-test-medium.yml
+
+  large-test:
+    name: Large Test
+    needs:
+      - medium-test
+    uses: ./.github/workflows/job-server-test-large.yml
+
+  lint:
+    name: Lint and Format
+    uses: ./.github/workflows/job-server-lint.yml
+  coverage:
+    name: Coverage
+    needs:
+      - small-test
+    uses: ./.github/workflows/job-server-test-coverage.yml
+    with:
+      coverage-threshold: 80

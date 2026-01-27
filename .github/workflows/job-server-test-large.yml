@@ -1,0 +1,33 @@
+name: Job - Server Test (large size)
+
+on:
+  workflow_call:
+
+jobs:
+  test:
+    name: Run Large Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.25.5'
+          cache: true
+
+      - name: Install oapi-codegen
+        run: go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
+
+      - name: Generate OpenAPI code
+        run: make generate
+
+      - name: Tidy dependencies
+        run: go mod tidy
+
+      - name: Run large tests
+        run: go test -tags=large ./...
