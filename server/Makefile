@@ -32,7 +32,7 @@ test-cover: ## Run tests with coverage
 .PHONY: generate
 
 generate: ## Run code generation
-	go generate ./...
+	oapi-codegen -config oapi-codegen.yaml ../spec/openapi.yml
 
 .PHONY: check lint fmt
 
