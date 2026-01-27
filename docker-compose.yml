@@ -1,0 +1,19 @@
+services:
+  server:
+    image: mcr.microsoft.com/devcontainers/go:2-1.25-trixie
+    volumes:
+      - .:/workspaces/holocron:cached
+    working_dir: /workspaces/holocron
+    ports:
+      - "8080:8080"
+    command: sleep infinity
+
+  firebase:
+    image: motomotomato/firestore-emulator
+    ports:
+      - 8080:8080
+      - 4000:4000
+      - 9099:9099
+    volumes:
+      - ./firebase:/firebase
+    command: ["emulators:start", "--project", "holocron"]
