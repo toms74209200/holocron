@@ -1,0 +1,12 @@
+name: On Pull Request(OpenAPI Spec)
+
+on:
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'spec/**.yml'
+
+jobs:
+  lint:
+    name: Lint and Format
+    uses: ./.github/workflows/job-spec-lint.yml

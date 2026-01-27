@@ -1,0 +1,21 @@
+name: Job - OpenAPI Spec Lint
+
+on:
+  workflow_call:
+
+jobs:
+  lint:
+    name: Run Lint Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: spec
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Spectral
+        run: npm install -g @stoplight/spectral-cli
+
+      - name: Lint check
+        run: spectral lint openapi.yml --format github-actions
