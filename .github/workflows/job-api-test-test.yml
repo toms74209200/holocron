@@ -1,0 +1,57 @@
+name: Job - API Tests
+
+on:
+  workflow_call:
+
+jobs:
+  test:
+    name: Run API Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Start Firebase Emulator
+        run: docker compose up -d firebase
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.25.5'
+          cache: true
+
+      - name: Install oapi-codegen
+        working-directory: server
+        run: go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
+
+      - name: Install sqlc
+        working-directory: server
+        run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+
+      - name: Generate code
+        working-directory: server
+        run: make generate
+
+      - name: Launch Server
+        working-directory: server
+        run: go run . &
+        env:
+          FIREBASE_AUTH_EMULATOR_HOST: localhost:9099
+          FIREBASE_PROJECT_ID: holocron
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version-file: "api-tests/.python-version"
+
+      - uses: astral-sh/setup-uv@v7
+
+      - name: Install dependencies
+        working-directory: api-tests
+        run: uv sync
+
+      - name: Wait for server to be ready
+        run: ./.github/scripts/wait-for-it.sh localhost:8080
+
+      - name: Run tests
+        working-directory: api-tests
+        run: uv run pytest tests/ -vv
