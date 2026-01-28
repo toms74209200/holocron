@@ -10,6 +10,7 @@ import (
 
 	"holocron/internal/api"
 	"holocron/internal/auth"
+	"holocron/internal/book"
 	"holocron/internal/user"
 
 	_ "modernc.org/sqlite"
@@ -19,10 +20,11 @@ import (
 
 type server struct {
 	createUserHandler *user.CreateUserHandler
+	createBookHandler *book.CreateBookHandler
 }
 
 func (s *server) PostBooks(w http.ResponseWriter, r *http.Request) {
-	notImplemented(w)
+	s.createBookHandler.ServeHTTP(w, r)
 }
 func (s *server) GetBooksCode(w http.ResponseWriter, r *http.Request, params api.GetBooksCodeParams) {
 	notImplemented(w)
@@ -61,6 +63,20 @@ func initDB(database *sql.DB) error {
 		occurred_at TEXT NOT NULL
 	);
 	CREATE INDEX IF NOT EXISTS idx_user_events_user_id ON user_events(user_id);
+
+	CREATE TABLE IF NOT EXISTS book_events (
+		event_id TEXT PRIMARY KEY,
+		book_id TEXT NOT NULL,
+		event_type TEXT NOT NULL,
+		code TEXT,
+		title TEXT,
+		authors TEXT,
+		publisher TEXT,
+		published_date TEXT,
+		thumbnail_url TEXT,
+		occurred_at TEXT NOT NULL
+	);
+	CREATE INDEX IF NOT EXISTS idx_book_events_book_id ON book_events(book_id);
 	`
 	_, err := database.Exec(schema)
 	return err
@@ -89,10 +105,11 @@ func main() {
 	}
 
 	userQueries := user.New(database)
-	createUserService := user.NewCreateUserService(userQueries, firebaseAuth)
+	bookQueries := book.New(database)
 
 	srv := &server{
 		createUserHandler: user.NewCreateUserHandler(userQueries, firebaseAuth),
+		createBookHandler: book.NewCreateBookHandler(bookQueries),
 	}
 
 	mux := http.NewServeMux()
