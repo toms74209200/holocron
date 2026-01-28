@@ -26,23 +26,21 @@ paths:
   /users:
     post:
       summary: ユーザー登録
-      description: Firebase Anonymous認証後、ユーザー名を設定して登録
+      description: 新規ユーザーを登録し、Firebase Custom Tokenを発行
       operationId: postUsers
       tags:
         - Users
+      security: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required:
-                - name
               properties:
                 name:
                   type: string
-                  description: ユーザー名
-                  minLength: 1
+                  description: ユーザー名（未指定の場合は自動生成）
                   maxLength: 50
       responses:
         '201':
@@ -54,6 +52,7 @@ paths:
                 required:
                   - id
                   - name
+                  - customToken
                   - createdAt
                 properties:
                   id:
@@ -61,6 +60,9 @@ paths:
                     format: uuid
                   name:
                     type: string
+                  customToken:
+                    type: string
+                    description: Firebase Custom Token
                   createdAt:
                     type: string
                     format: date-time
@@ -69,20 +71,6 @@ paths:
                     format: date-time
         '400':
           description: リクエストが不正
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - code
-                  - message
-                properties:
-                  code:
-                    type: string
-                  message:
-                    type: string
-        '401':
-          description: 認証が必要
           content:
             application/json:
               schema:
