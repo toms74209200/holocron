@@ -1,0 +1,14 @@
+name: On Pull Request (API Test)
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'api-tests/**/*.py'
+      - 'api-tests/pyproject.toml'
+      - 'api-tests/uv.lock'
+
+jobs:
+  test:
+    uses: ./.github/workflows/job-api-test-test.yml
