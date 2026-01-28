@@ -8,12 +8,14 @@ import (
 )
 
 type CreateUserHandler struct {
-	service *CreateUserService
+	queries      *Queries
+	firebaseAuth FirebaseAuth
 }
 
-func NewCreateUserHandler(service *CreateUserService) *CreateUserHandler {
+func NewCreateUserHandler(queries *Queries, firebaseAuth FirebaseAuth) *CreateUserHandler {
 	return &CreateUserHandler{
-		service: service,
+		queries:      queries,
+		firebaseAuth: firebaseAuth,
 	}
 }
 
@@ -26,7 +28,7 @@ func (h *CreateUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	output, err := h.service.Execute(r.Context(), CreateUserInput{
+	output, err := CreateUser(r.Context(), h.queries, h.firebaseAuth, CreateUserInput{
 		Name: req.Name,
 	})
 

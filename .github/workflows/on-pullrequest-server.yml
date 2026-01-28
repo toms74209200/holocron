@@ -9,8 +9,14 @@ on:
       - 'go.sum'
 
 jobs:
+  build:
+    name: Build
+    uses: ./.github/workflows/job-server-build.yml
+
   small-test:
     name: Small Test
+    needs:
+      - build
     uses: ./.github/workflows/job-server-test-small.yml
     with:
       with-coverage: true
@@ -29,7 +35,10 @@ jobs:
 
   lint:
     name: Lint and Format
+    needs:
+      - build
     uses: ./.github/workflows/job-server-lint.yml
+
   coverage:
     name: Coverage
     needs:

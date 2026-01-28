@@ -43,18 +43,17 @@ func (f *fakeFirebaseAuth) CreateCustomToken(_ context.Context, _ string) (strin
 	return f.token, f.err
 }
 
-// When Execute with new user then returns CreateUserOutput
-func TestCreateUserService_Execute_WithNewUser_ReturnsOutput(t *testing.T) {
+// When CreateUser with new user then returns CreateUserOutput
+func TestCreateUser_WithNewUser_ReturnsOutput(t *testing.T) {
 	db := setupTestDB(t)
 	queries := New(db)
 	firebaseAuth := &fakeFirebaseAuth{token: "test-token", err: nil}
-	service := NewCreateUserService(queries, firebaseAuth)
 	ctx := context.Background()
 
 	name := "TestUser"
 	input := CreateUserInput{Name: &name}
 
-	output, err := service.Execute(ctx, input)
+	output, err := CreateUser(ctx, queries, firebaseAuth, input)
 
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -73,17 +72,16 @@ func TestCreateUserService_Execute_WithNewUser_ReturnsOutput(t *testing.T) {
 	}
 }
 
-// When Execute with nil name then generates name automatically
-func TestCreateUserService_Execute_WithNilName_GeneratesName(t *testing.T) {
+// When CreateUser with nil name then generates name automatically
+func TestCreateUser_WithNilName_GeneratesName(t *testing.T) {
 	db := setupTestDB(t)
 	queries := New(db)
 	firebaseAuth := &fakeFirebaseAuth{token: "test-token", err: nil}
-	service := NewCreateUserService(queries, firebaseAuth)
 	ctx := context.Background()
 
 	input := CreateUserInput{Name: nil}
 
-	output, err := service.Execute(ctx, input)
+	output, err := CreateUser(ctx, queries, firebaseAuth, input)
 
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -96,36 +94,34 @@ func TestCreateUserService_Execute_WithNilName_GeneratesName(t *testing.T) {
 	}
 }
 
-// When Execute with invalid name then returns ErrInvalidUserName
-func TestCreateUserService_Execute_WithInvalidName_ReturnsError(t *testing.T) {
+// When CreateUser with invalid name then returns ErrInvalidUserName
+func TestCreateUser_WithInvalidName_ReturnsError(t *testing.T) {
 	db := setupTestDB(t)
 	queries := New(db)
 	firebaseAuth := &fakeFirebaseAuth{token: "test-token", err: nil}
-	service := NewCreateUserService(queries, firebaseAuth)
 	ctx := context.Background()
 
 	longName := "this name is way too long and exceeds the fifty character limit for user names"
 	input := CreateUserInput{Name: &longName}
 
-	_, err := service.Execute(ctx, input)
+	_, err := CreateUser(ctx, queries, firebaseAuth, input)
 
 	if !errors.Is(err, ErrInvalidUserName) {
 		t.Errorf("expected ErrInvalidUserName, got %v", err)
 	}
 }
 
-// When Execute with firebase error then returns ErrTokenCreation
-func TestCreateUserService_Execute_WithFirebaseError_ReturnsError(t *testing.T) {
+// When CreateUser with firebase error then returns ErrTokenCreation
+func TestCreateUser_WithFirebaseError_ReturnsError(t *testing.T) {
 	db := setupTestDB(t)
 	queries := New(db)
 	firebaseAuth := &fakeFirebaseAuth{token: "", err: errors.New("firebase error")}
-	service := NewCreateUserService(queries, firebaseAuth)
 	ctx := context.Background()
 
 	name := "TestUser"
 	input := CreateUserInput{Name: &name}
 
-	_, err := service.Execute(ctx, input)
+	_, err := CreateUser(ctx, queries, firebaseAuth, input)
 
 	if !errors.Is(err, ErrTokenCreation) {
 		t.Errorf("expected ErrTokenCreation, got %v", err)
