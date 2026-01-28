@@ -1,0 +1,10 @@
+version: "2"
+sql:
+  - engine: "sqlite"
+    queries: "queries/user.sql"
+    schema: "schema"
+    gen:
+      go:
+        package: "user"
+        out: "../server/internal/user"
+        output_files_suffix: "_gen"

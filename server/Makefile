@@ -29,10 +29,19 @@ test-cover: ## Run tests with coverage
 	go test -race -coverprofile=coverage.txt -covermode=atomic ./...
 	go tool cover -func=coverage.txt
 
-.PHONY: generate
+.PHONY: generate generate-api generate-db
 
-generate: ## Run code generation
+generate: generate-api generate-db ## Run all code generation
+
+generate-api: ## Generate OpenAPI code
 	oapi-codegen -config oapi-codegen.yaml ../spec/openapi.yml
+
+generate-db: ## Generate sqlc code
+	cd ../database && sqlc generate
+	@for dir in internal/*/; do \
+		[ -f "$${dir}db.go" ] && mv "$${dir}db.go" "$${dir}db_gen.go" || true; \
+		[ -f "$${dir}models.go" ] && mv "$${dir}models.go" "$${dir}models_gen.go" || true; \
+	done
 
 .PHONY: check lint fmt
 

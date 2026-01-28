@@ -6,14 +6,16 @@ services:
     working_dir: /workspaces/holocron
     ports:
       - "8080:8080"
+    environment:
+      - FIREBASE_AUTH_EMULATOR_HOST=firebase:9099
     command: sleep infinity
 
   firebase:
     image: motomotomato/firestore-emulator
     ports:
-      - 8080:8080
       - 4000:4000
       - 9099:9099
     volumes:
       - ./firebase:/firebase
+    working_dir: /firebase
     command: ["emulators:start", "--project", "holocron"]

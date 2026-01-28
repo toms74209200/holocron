@@ -29,7 +29,10 @@ jobs:
       - name: Install oapi-codegen
         run: go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
 
-      - name: Generate OpenAPI code
+      - name: Install sqlc
+        run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+
+      - name: Generate code
         run: make generate
 
       - name: Verify dependencies
@@ -50,4 +53,4 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: coverage-report
-          path: coverage.txt
+          path: server/coverage.txt

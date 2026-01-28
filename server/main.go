@@ -1,15 +1,110 @@
 package main
 
 import (
+	"context"
+	"database/sql"
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+
+	"holocron/internal/api"
+	"holocron/internal/auth"
+	"holocron/internal/user"
+
+	_ "modernc.org/sqlite"
+
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+type server struct {
+	createUserHandler *user.CreateUserHandler
+}
+
+func (s *server) PostBooks(w http.ResponseWriter, r *http.Request) {
+	notImplemented(w)
+}
+func (s *server) GetBooksCode(w http.ResponseWriter, r *http.Request, params api.GetBooksCodeParams) {
+	notImplemented(w)
+}
+func (s *server) PostBooksCode(w http.ResponseWriter, r *http.Request) { notImplemented(w) }
+func (s *server) GetBooks(w http.ResponseWriter, r *http.Request, bookId openapi_types.UUID) {
+	notImplemented(w)
+}
+func (s *server) PostBooksBookId(w http.ResponseWriter, r *http.Request, bookId openapi_types.UUID) {
+	notImplemented(w)
+}
+func (s *server) PostBooksBorrow(w http.ResponseWriter, r *http.Request, bookId openapi_types.UUID) {
+	notImplemented(w)
+}
+func (s *server) PostBooksReturn(w http.ResponseWriter, r *http.Request, bookId openapi_types.UUID) {
+	notImplemented(w)
+}
+
+func (s *server) PostUsers(w http.ResponseWriter, r *http.Request) {
+	s.createUserHandler.ServeHTTP(w, r)
+}
+
+func notImplemented(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusNotImplemented)
+	_ = json.NewEncoder(w).Encode(map[string]string{"message": "not implemented"})
+}
+
+func initDB(database *sql.DB) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS user_events (
+		event_id TEXT PRIMARY KEY,
+		user_id TEXT NOT NULL,
+		event_type TEXT NOT NULL,
+		name TEXT NOT NULL,
+		occurred_at TEXT NOT NULL
+	);
+	CREATE INDEX IF NOT EXISTS idx_user_events_user_id ON user_events(user_id);
+	`
+	_, err := database.Exec(schema)
+	return err
+}
+
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "holocron")
+	ctx := context.Background()
+
+	database, err := sql.Open("sqlite", ":memory:")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		if err := database.Close(); err != nil {
+			log.Printf("failed to close database: %v", err)
+		}
+	}()
+
+	if err := initDB(database); err != nil {
+		log.Fatal(err)
+	}
+
+	firebaseAuth, err := auth.NewFirebaseAuth(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	userQueries := user.New(database)
+	createUserService := user.NewCreateUserService(userQueries, firebaseAuth)
+
+	srv := &server{
+		createUserHandler: user.NewCreateUserHandler(createUserService),
+	}
+
+	mux := http.NewServeMux()
+	api.HandlerWithOptions(srv, api.StdHTTPServerOptions{
+		BaseRouter: mux,
+		Middlewares: []api.MiddlewareFunc{
+			auth.AuthMiddleware(firebaseAuth),
+		},
 	})
 
 	fmt.Println("Server starting on :8080")
-	http.ListenAndServe(":8080", nil)
+	if err := http.ListenAndServe(":8080", mux); err != nil {
+		log.Fatal(err)
+	}
 }
