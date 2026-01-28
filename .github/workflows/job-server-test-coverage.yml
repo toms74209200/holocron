@@ -42,7 +42,7 @@ jobs:
       - name: Calculate coverage
         id: calc-coverage
         run: |
-          coverage=$(go tool cover -func=coverage.txt | grep total | awk '{print substr($3, 1, length($3)-1)}')
+          coverage=$(go tool cover -func=../coverage.txt | grep total | awk '{print substr($3, 1, length($3)-1)}')
           echo "coverage=$coverage" >> $GITHUB_OUTPUT
 
       - name: Generate coverage report
@@ -52,7 +52,7 @@ jobs:
 
           ## File Coverage Details
           \`\`\`
-          $(go tool cover -func=coverage.txt)
+          $(go tool cover -func=../coverage.txt)
           \`\`\`
 
           ## Coverage Status
