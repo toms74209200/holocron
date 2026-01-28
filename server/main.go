@@ -92,7 +92,7 @@ func main() {
 	createUserService := user.NewCreateUserService(userQueries, firebaseAuth)
 
 	srv := &server{
-		createUserHandler: user.NewCreateUserHandler(createUserService),
+		createUserHandler: user.NewCreateUserHandler(userQueries, firebaseAuth),
 	}
 
 	mux := http.NewServeMux()

@@ -20,18 +20,6 @@ type FirebaseAuth interface {
 	CreateCustomToken(ctx context.Context, uid string) (string, error)
 }
 
-type CreateUserService struct {
-	queries      *Queries
-	firebaseAuth FirebaseAuth
-}
-
-func NewCreateUserService(queries *Queries, firebaseAuth FirebaseAuth) *CreateUserService {
-	return &CreateUserService{
-		queries:      queries,
-		firebaseAuth: firebaseAuth,
-	}
-}
-
 type CreateUserInput struct {
 	Name *string
 }
@@ -43,7 +31,7 @@ type CreateUserOutput struct {
 	CreatedAt   time.Time
 }
 
-func (s *CreateUserService) Execute(ctx context.Context, input CreateUserInput) (*CreateUserOutput, error) {
+func CreateUser(ctx context.Context, queries *Queries, firebaseAuth FirebaseAuth, input CreateUserInput) (*CreateUserOutput, error) {
 	userID := uuid.New().String()
 
 	var userName domain.UserName
@@ -57,7 +45,7 @@ func (s *CreateUserService) Execute(ctx context.Context, input CreateUserInput) 
 		}
 	}
 
-	cnt, err := s.queries.CountUserByUserId(ctx, userID)
+	cnt, err := queries.CountUserByUserId(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -65,13 +53,13 @@ func (s *CreateUserService) Execute(ctx context.Context, input CreateUserInput) 
 		return nil, ErrUserAlreadyExists
 	}
 
-	customToken, err := s.firebaseAuth.CreateCustomToken(ctx, userID)
+	customToken, err := firebaseAuth.CreateCustomToken(ctx, userID)
 	if err != nil {
 		return nil, ErrTokenCreation
 	}
 
 	now := time.Now().UTC()
-	err = s.queries.InsertUserEvent(ctx, InsertUserEventParams{
+	err = queries.InsertUserEvent(ctx, InsertUserEventParams{
 		EventID:    uuid.New().String(),
 		UserID:     userID,
 		EventType:  "created",
