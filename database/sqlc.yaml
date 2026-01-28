@@ -8,3 +8,11 @@ sql:
         package: "user"
         out: "../server/internal/user"
         output_files_suffix: "_gen"
+  - engine: "sqlite"
+    queries: "queries/book.sql"
+    schema: "schema"
+    gen:
+      go:
+        package: "book"
+        out: "../server/internal/book"
+        output_files_suffix: "_gen"
