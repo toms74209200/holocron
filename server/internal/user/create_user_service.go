@@ -65,6 +65,11 @@ func (s *CreateUserService) Execute(ctx context.Context, input CreateUserInput) 
 		return nil, ErrUserAlreadyExists
 	}
 
+	customToken, err := s.firebaseAuth.CreateCustomToken(ctx, userID)
+	if err != nil {
+		return nil, ErrTokenCreation
+	}
+
 	now := time.Now().UTC()
 	err = s.queries.InsertUserEvent(ctx, InsertUserEventParams{
 		EventID:    uuid.New().String(),
@@ -75,11 +80,6 @@ func (s *CreateUserService) Execute(ctx context.Context, input CreateUserInput) 
 	})
 	if err != nil {
 		return nil, err
-	}
-
-	customToken, err := s.firebaseAuth.CreateCustomToken(ctx, userID)
-	if err != nil {
-		return nil, ErrTokenCreation
 	}
 
 	return &CreateUserOutput{

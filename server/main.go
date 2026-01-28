@@ -21,7 +21,9 @@ type server struct {
 	createUserHandler *user.CreateUserHandler
 }
 
-func (s *server) PostBooks(w http.ResponseWriter, r *http.Request) {}
+func (s *server) PostBooks(w http.ResponseWriter, r *http.Request) {
+	notImplemented(w)
+}
 func (s *server) GetBooksCode(w http.ResponseWriter, r *http.Request, params api.GetBooksCodeParams) {
 	notImplemented(w)
 }
@@ -46,7 +48,7 @@ func (s *server) PostUsers(w http.ResponseWriter, r *http.Request) {
 func notImplemented(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNotImplemented)
-	json.NewEncoder(w).Encode(map[string]string{"message": "not implemented"})
+	_ = json.NewEncoder(w).Encode(map[string]string{"message": "not implemented"})
 }
 
 func initDB(database *sql.DB) error {
@@ -71,7 +73,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer database.Close()
+	defer func() {
+		if err := database.Close(); err != nil {
+			log.Printf("failed to close database: %v", err)
+		}
+	}()
 
 	if err := initDB(database); err != nil {
 		log.Fatal(err)

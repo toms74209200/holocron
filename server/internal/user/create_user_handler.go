@@ -46,7 +46,7 @@ func (h *CreateUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"id":          output.ID,
 		"name":        output.Name,
 		"customToken": output.CustomToken,
@@ -57,7 +57,7 @@ func (h *CreateUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func writeError(w http.ResponseWriter, status int, code, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(map[string]string{
+	_ = json.NewEncoder(w).Encode(map[string]string{
 		"code":    code,
 		"message": message,
 	})

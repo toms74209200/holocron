@@ -43,5 +43,5 @@ func AuthMiddleware(fa FirebaseAuth) api.MiddlewareFunc {
 func writeUnauthorized(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusUnauthorized)
-	w.Write([]byte(`{"code":"unauthorized","message":"authentication required"}`))
+	_, _ = w.Write([]byte(`{"code":"unauthorized","message":"authentication required"}`))
 }

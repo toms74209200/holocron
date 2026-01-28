@@ -23,11 +23,6 @@ type firebaseAuth struct {
 }
 
 func NewFirebaseAuth(ctx context.Context) (FirebaseAuth, error) {
-	emulatorHost := os.Getenv("FIREBASE_AUTH_EMULATOR_HOST")
-	if emulatorHost != "" {
-		os.Setenv("FIREBASE_AUTH_EMULATOR_HOST", emulatorHost)
-	}
-
 	projectID := os.Getenv("FIREBASE_PROJECT_ID")
 	if projectID == "" {
 		projectID = "holocron"
