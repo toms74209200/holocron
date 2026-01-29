@@ -8,6 +8,8 @@ services:
       - "8080:8080"
     environment:
       - FIREBASE_AUTH_EMULATOR_HOST=firebase:9099
+      - GOOGLE_BOOKS_API_URL=http://fake-google-books:4010
+      - OPENBD_API_URL=http://fake-openbd:4011
     command: sleep infinity
 
   firebase:
@@ -19,3 +21,19 @@ services:
       - ./firebase:/firebase
     working_dir: /firebase
     command: ["emulators:start", "--project", "holocron"]
+
+  fake-google-books:
+    image: stoplight/prism:5
+    ports:
+      - "4010:4010"
+    volumes:
+      - ./fake:/fake:ro
+    command: ["mock", "-h", "0.0.0.0", "-p", "4010", "/fake/google_books.yml"]
+
+  fake-openbd:
+    image: stoplight/prism:5
+    ports:
+      - "4011:4011"
+    volumes:
+      - ./fake:/fake:ro
+    command: ["mock", "-h", "0.0.0.0", "-p", "4011", "/fake/openbd.yml"]

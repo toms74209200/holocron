@@ -11,6 +11,7 @@ import (
 	"holocron/internal/api"
 	"holocron/internal/auth"
 	"holocron/internal/book"
+	"holocron/internal/book/domain"
 	"holocron/internal/user"
 
 	_ "modernc.org/sqlite"
@@ -19,8 +20,9 @@ import (
 )
 
 type server struct {
-	createUserHandler *user.CreateUserHandler
-	createBookHandler *book.CreateBookHandler
+	createUserHandler       *user.CreateUserHandler
+	createBookHandler       *book.CreateBookHandler
+	createBookByCodeHandler *book.CreateBookByCodeHandler
 }
 
 func (s *server) PostBooks(w http.ResponseWriter, r *http.Request) {
@@ -29,7 +31,9 @@ func (s *server) PostBooks(w http.ResponseWriter, r *http.Request) {
 func (s *server) GetBooksCode(w http.ResponseWriter, r *http.Request, params api.GetBooksCodeParams) {
 	notImplemented(w)
 }
-func (s *server) PostBooksCode(w http.ResponseWriter, r *http.Request) { notImplemented(w) }
+func (s *server) PostBooksCode(w http.ResponseWriter, r *http.Request) {
+	s.createBookByCodeHandler.ServeHTTP(w, r)
+}
 func (s *server) GetBooks(w http.ResponseWriter, r *http.Request, bookId openapi_types.UUID) {
 	notImplemented(w)
 }
@@ -107,9 +111,25 @@ func main() {
 	userQueries := user.New(database)
 	bookQueries := book.New(database)
 
+	googleBooksFetcher, err := book.NewGoogleBooksFetcher()
+	if err != nil {
+		log.Fatal(err)
+	}
+	openBDFetcher, err := book.NewOpenBDFetcher()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sources := []domain.BookInfoSource{
+		book.DBCacheSource(bookQueries),
+		book.ExternalAPISource(googleBooksFetcher.Fetch, domain.BookInfoFromGoogleBooks),
+		book.ExternalAPISource(openBDFetcher.Fetch, domain.BookInfoFromOpenBD),
+	}
+
 	srv := &server{
-		createUserHandler: user.NewCreateUserHandler(userQueries, firebaseAuth),
-		createBookHandler: book.NewCreateBookHandler(bookQueries),
+		createUserHandler:       user.NewCreateUserHandler(userQueries, firebaseAuth),
+		createBookHandler:       book.NewCreateBookHandler(bookQueries),
+		createBookByCodeHandler: book.NewCreateBookByCodeHandler(bookQueries, sources),
 	}
 
 	mux := http.NewServeMux()

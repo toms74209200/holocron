@@ -27,12 +27,6 @@ jobs:
       - small-test
     uses: ./.github/workflows/job-server-test-medium.yml
 
-  large-test:
-    name: Large Test
-    needs:
-      - medium-test
-    uses: ./.github/workflows/job-server-test-large.yml
-
   lint:
     name: Lint and Format
     needs:

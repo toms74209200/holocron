@@ -24,3 +24,9 @@ LIMIT ? OFFSET ?;
 SELECT COUNT(*) AS cnt
 FROM book_events
 WHERE event_type = 'created';
+
+-- name: GetBookByCode :one
+SELECT book_id, code, title, authors, publisher, published_date, thumbnail_url, occurred_at
+FROM book_events
+WHERE code = ? AND event_type = 'created'
+LIMIT 1;
