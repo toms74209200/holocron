@@ -1,0 +1,69 @@
+openapi: 3.0.3
+info:
+  title: Google Books API (Fake)
+  version: "1.0"
+servers:
+  - url: http://localhost:4010
+paths:
+  /volumes:
+    get:
+      summary: Search volumes
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Volumes"
+              examples:
+                found:
+                  value:
+                    totalItems: 1
+                    items:
+                      - volumeInfo:
+                          title: "リーダブルコード"
+                          authors: ["Dustin Boswell", "Trevor Foucher"]
+                          publisher: "オライリージャパン"
+                          publishedDate: "2012-06-23"
+                          imageLinks:
+                            thumbnail: "http://example.com/thumb.jpg"
+                notFound:
+                  value:
+                    totalItems: 0
+                    items: []
+components:
+  schemas:
+    Volumes:
+      type: object
+      properties:
+        totalItems:
+          type: integer
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              volumeInfo:
+                type: object
+                properties:
+                  title:
+                    type: string
+                  authors:
+                    type: array
+                    items:
+                      type: string
+                  publisher:
+                    type: string
+                  publishedDate:
+                    type: string
+                  imageLinks:
+                    type: object
+                    properties:
+                      thumbnail:
+                        type: string
