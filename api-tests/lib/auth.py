@@ -15,9 +15,6 @@ def create_user_and_get_token(name: str | None = None) -> str:
     response.raise_for_status()
     custom_token = response.json()["customToken"]
 
-    if not FIREBASE_API_KEY:
-        raise ValueError("FIREBASE_API_KEY environment variable is not set")
-
     response = requests.post(
         f"{FIREBASE_AUTH_URL}?key={FIREBASE_API_KEY}",
         json={
