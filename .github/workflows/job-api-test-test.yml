@@ -11,8 +11,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Start Firebase Emulator
-        run: docker compose up -d firebase
+      - name: Start Firebase Emulator and Mock API Servers
+        run: docker compose up -d firebase fake-google-books fake-openbd
 
       - name: Set up Go
         uses: actions/setup-go@v6
@@ -38,6 +38,8 @@ jobs:
         env:
           FIREBASE_AUTH_EMULATOR_HOST: localhost:9099
           FIREBASE_PROJECT_ID: holocron
+          GOOGLE_BOOKS_API_URL: http://localhost:4010
+          OPENBD_API_URL: http://localhost:4011
 
       - uses: actions/setup-python@v6
         with:
