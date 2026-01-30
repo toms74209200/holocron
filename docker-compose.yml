@@ -12,6 +12,18 @@ services:
       - OPENBD_API_URL=http://fake-openbd:4011
     command: sleep infinity
 
+  web:
+    image: mcr.microsoft.com/devcontainers/typescript-node:24-trixie
+    volumes:
+      - .:/workspaces/holocron:cached
+    working_dir: /workspaces/holocron
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST=firebase:9099
+      - NEXT_PUBLIC_APP_API_URL=http://server:8080
+    command: sleep infinity
+
   firebase:
     image: motomotomato/firestore-emulator
     ports:
@@ -21,6 +33,14 @@ services:
       - ./firebase:/firebase
     working_dir: /firebase
     command: ["emulators:start", "--project", "holocron"]
+
+  fake-server:
+    image: stoplight/prism:5
+    ports:
+      - "4100:4100"
+    volumes:
+      - ./spec:/spec:ro
+    command: ["mock", "-h", "0.0.0.0", "-p", "4100", "/spec/openapi.yml"]
 
   fake-google-books:
     image: stoplight/prism:5
