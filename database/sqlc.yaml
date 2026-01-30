@@ -16,3 +16,19 @@ sql:
         package: "book"
         out: "../server/internal/book"
         output_files_suffix: "_gen"
+  - engine: "sqlite"
+    queries: "queries/books.sql"
+    schema: "schema"
+    gen:
+      go:
+        package: "books"
+        out: "../server/internal/books"
+        output_files_suffix: "_gen"
+  - engine: "sqlite"
+    queries: "queries/bookcode.sql"
+    schema: "schema"
+    gen:
+      go:
+        package: "bookcode"
+        out: "../server/internal/bookcode"
+        output_files_suffix: "_gen"

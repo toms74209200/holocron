@@ -1,6 +1,6 @@
 //go:build medium
 
-package book
+package books
 
 import (
 	"context"

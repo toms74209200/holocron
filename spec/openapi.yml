@@ -99,6 +99,122 @@ paths:
                     type: string
 
   /books:
+    get:
+      summary: 書籍一覧・検索
+      description: 書籍の一覧を取得。タイトル・著者で検索可能。貸出ステータスも含む。
+      operationId: getBooks
+      tags:
+        - Books
+      parameters:
+        - name: q
+          in: query
+          description: 検索キーワード（タイトル・著者）
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: 貸出ステータスでフィルタ
+          schema:
+            type: string
+            enum:
+              - available
+              - borrowed
+        - name: limit
+          in: query
+          description: 取得件数上限
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: offset
+          in: query
+          description: オフセット
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+      responses:
+        '200':
+          description: 書籍一覧
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - total
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - id
+                        - title
+                        - authors
+                        - status
+                        - createdAt
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        code:
+                          type: string
+                          description: バーコード（ISBN/雑誌コード/JANコード）
+                        title:
+                          type: string
+                        authors:
+                          type: array
+                          items:
+                            type: string
+                        publisher:
+                          type: string
+                        publishedDate:
+                          type: string
+                        thumbnailUrl:
+                          type: string
+                          format: uri
+                        status:
+                          type: string
+                          enum:
+                            - available
+                            - borrowed
+                        borrower:
+                          type: object
+                          required:
+                            - id
+                            - name
+                            - borrowedAt
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                            name:
+                              type: string
+                            borrowedAt:
+                              type: string
+                              format: date-time
+                        createdAt:
+                          type: string
+                          format: date-time
+                  total:
+                    type: integer
+        '401':
+          description: 認証が必要
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+
     post:
       summary: 書籍登録（手動）
       description: タイトル・著者などを直接指定して書籍を登録
@@ -320,127 +436,11 @@ paths:
                   message:
                     type: string
 
-    get:
-      summary: 書籍一覧・検索
-      description: 書籍の一覧を取得。タイトル・著者で検索可能。貸出ステータスも含む。
-      operationId: getBooksCode
-      tags:
-        - Books
-      parameters:
-        - name: q
-          in: query
-          description: 検索キーワード（タイトル・著者）
-          schema:
-            type: string
-        - name: status
-          in: query
-          description: 貸出ステータスでフィルタ
-          schema:
-            type: string
-            enum:
-              - available
-              - borrowed
-        - name: limit
-          in: query
-          description: 取得件数上限
-          schema:
-            type: integer
-            default: 20
-            minimum: 1
-            maximum: 100
-        - name: offset
-          in: query
-          description: オフセット
-          schema:
-            type: integer
-            default: 0
-            minimum: 0
-      responses:
-        '200':
-          description: 書籍一覧
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - items
-                  - total
-                properties:
-                  items:
-                    type: array
-                    items:
-                      type: object
-                      required:
-                        - id
-                        - title
-                        - authors
-                        - status
-                        - createdAt
-                      properties:
-                        id:
-                          type: string
-                          format: uuid
-                        code:
-                          type: string
-                          description: バーコード（ISBN/雑誌コード/JANコード）
-                        title:
-                          type: string
-                        authors:
-                          type: array
-                          items:
-                            type: string
-                        publisher:
-                          type: string
-                        publishedDate:
-                          type: string
-                        thumbnailUrl:
-                          type: string
-                          format: uri
-                        status:
-                          type: string
-                          enum:
-                            - available
-                            - borrowed
-                        borrower:
-                          type: object
-                          required:
-                            - id
-                            - name
-                            - borrowedAt
-                          properties:
-                            id:
-                              type: string
-                              format: uuid
-                            name:
-                              type: string
-                            borrowedAt:
-                              type: string
-                              format: date-time
-                        createdAt:
-                          type: string
-                          format: date-time
-                  total:
-                    type: integer
-        '401':
-          description: 認証が必要
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - code
-                  - message
-                properties:
-                  code:
-                    type: string
-                  message:
-                    type: string
-
   /books/{bookId}:
     get:
       summary: 書籍詳細取得
       description: 指定した書籍の詳細情報を取得
-      operationId: getBooks
+      operationId: getBook
       tags:
         - Books
       parameters:
