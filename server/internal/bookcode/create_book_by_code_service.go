@@ -1,4 +1,4 @@
-package book
+package bookcode
 
 import (
 	"context"
@@ -7,12 +7,17 @@ import (
 	"errors"
 	"time"
 
-	"holocron/internal/book/domain"
+	book "holocron/internal/book/domain"
+	"holocron/internal/bookcode/domain"
 
 	"github.com/google/uuid"
 )
 
-var ErrInvalidCode = errors.New("invalid code")
+var (
+	ErrInvalidCode    = errors.New("invalid code")
+	ErrInvalidTitle   = errors.New("invalid title")
+	ErrInvalidAuthors = errors.New("invalid authors")
+)
 
 type CreateBookByCodeInput struct {
 	Code string
@@ -31,7 +36,7 @@ type CreateBookByCodeOutput struct {
 }
 
 func DBCacheSource(queries *Queries) domain.BookInfoSource {
-	return func(ctx context.Context, code string) (*domain.BookInfo, error) {
+	return func(ctx context.Context, code string) (*book.BookInfo, error) {
 		row, err := queries.GetBookByCode(ctx, sql.NullString{String: code, Valid: true})
 		if err != nil {
 			return nil, err
@@ -42,7 +47,7 @@ func DBCacheSource(queries *Queries) domain.BookInfoSource {
 			_ = json.Unmarshal([]byte(row.Authors.String), &authors)
 		}
 
-		return &domain.BookInfo{
+		return &book.BookInfo{
 			Title:         row.Title.String,
 			Authors:       authors,
 			Publisher:     row.Publisher.String,
@@ -54,9 +59,9 @@ func DBCacheSource(queries *Queries) domain.BookInfoSource {
 
 func ExternalAPISource(
 	fetch func(ctx context.Context, code string) ([]byte, error),
-	parse func(body []byte) (*domain.BookInfo, error),
+	parse func(body []byte) (*book.BookInfo, error),
 ) domain.BookInfoSource {
-	return func(ctx context.Context, code string) (*domain.BookInfo, error) {
+	return func(ctx context.Context, code string) (*book.BookInfo, error) {
 		body, err := fetch(ctx, code)
 		if err != nil {
 			return nil, err
@@ -81,12 +86,12 @@ func CreateBookByCode(
 		return nil, err
 	}
 
-	title, err := domain.ParseBookTitle(info.Title)
+	title, err := book.ParseBookTitle(info.Title)
 	if err != nil {
 		return nil, ErrInvalidTitle
 	}
 
-	authors, err := domain.ParseBookAuthors(info.Authors)
+	authors, err := book.ParseBookAuthors(info.Authors)
 	if err != nil {
 		return nil, ErrInvalidAuthors
 	}
@@ -133,4 +138,11 @@ func strPtr(s string) *string {
 		return nil
 	}
 	return &s
+}
+
+func toNullString(s *string) sql.NullString {
+	if s == nil {
+		return sql.NullString{}
+	}
+	return sql.NullString{String: *s, Valid: true}
 }

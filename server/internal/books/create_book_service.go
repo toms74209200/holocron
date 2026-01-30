@@ -1,4 +1,4 @@
-package book
+package books
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"errors"
 	"time"
 
-	"holocron/internal/book/domain"
+	book "holocron/internal/book/domain"
 
 	"github.com/google/uuid"
 )
@@ -37,12 +37,12 @@ type CreateBookOutput struct {
 }
 
 func CreateBook(ctx context.Context, queries *Queries, input CreateBookInput) (*CreateBookOutput, error) {
-	title, err := domain.ParseBookTitle(input.Title)
+	title, err := book.ParseBookTitle(input.Title)
 	if err != nil {
 		return nil, ErrInvalidTitle
 	}
 
-	authors, err := domain.ParseBookAuthors(input.Authors)
+	authors, err := book.ParseBookAuthors(input.Authors)
 	if err != nil {
 		return nil, ErrInvalidAuthors
 	}

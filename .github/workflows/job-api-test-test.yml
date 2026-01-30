@@ -51,6 +51,10 @@ jobs:
         working-directory: api-tests
         run: uv sync
 
+      - name: Generate API client
+        working-directory: api-tests
+        run: uv run openapi-python-client generate --path ../spec/openapi.yml --output-path openapi_gen
+
       - name: Wait for server to be ready
         run: ./.github/scripts/wait-for-it.sh localhost:8080
 

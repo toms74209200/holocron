@@ -10,8 +10,10 @@ import (
 
 	"holocron/internal/api"
 	"holocron/internal/auth"
-	"holocron/internal/book"
-	"holocron/internal/book/domain"
+	book "holocron/internal/book/domain"
+	"holocron/internal/bookcode"
+	bookcodeDomain "holocron/internal/bookcode/domain"
+	"holocron/internal/books"
 	"holocron/internal/user"
 
 	_ "modernc.org/sqlite"
@@ -21,9 +23,9 @@ import (
 
 type server struct {
 	createUserHandler       *user.CreateUserHandler
-	createBookHandler       *book.CreateBookHandler
-	createBookByCodeHandler *book.CreateBookByCodeHandler
-	listBooksHandler        *book.ListBooksHandler
+	createBookHandler       *books.CreateBookHandler
+	createBookByCodeHandler *bookcode.CreateBookByCodeHandler
+	listBooksHandler        *books.ListBooksHandler
 }
 
 func (s *server) GetBooks(w http.ResponseWriter, r *http.Request, params api.GetBooksParams) {
@@ -110,28 +112,29 @@ func main() {
 	}
 
 	userQueries := user.New(database)
-	bookQueries := book.New(database)
+	booksQueries := books.New(database)
+	bookcodeQueries := bookcode.New(database)
 
-	googleBooksFetcher, err := book.NewGoogleBooksFetcher()
+	googleBooksFetcher, err := bookcode.NewGoogleBooksFetcher()
 	if err != nil {
 		log.Fatal(err)
 	}
-	openBDFetcher, err := book.NewOpenBDFetcher()
+	openBDFetcher, err := bookcode.NewOpenBDFetcher()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	bookInfoSources := []domain.BookInfoSource{
-		book.DBCacheSource(bookQueries),
-		book.ExternalAPISource(googleBooksFetcher.Fetch, domain.BookInfoFromGoogleBooks),
-		book.ExternalAPISource(openBDFetcher.Fetch, domain.BookInfoFromOpenBD),
+	bookInfoSources := []bookcodeDomain.BookInfoSource{
+		bookcode.DBCacheSource(bookcodeQueries),
+		bookcode.ExternalAPISource(googleBooksFetcher.Fetch, book.BookInfoFromGoogleBooks),
+		bookcode.ExternalAPISource(openBDFetcher.Fetch, book.BookInfoFromOpenBD),
 	}
 
 	srv := &server{
 		createUserHandler:       user.NewCreateUserHandler(userQueries, firebaseAuth),
-		createBookHandler:       book.NewCreateBookHandler(bookQueries),
-		createBookByCodeHandler: book.NewCreateBookByCodeHandler(bookQueries, bookInfoSources),
-		listBooksHandler:        book.NewListBooksHandler(bookQueries),
+		createBookHandler:       books.NewCreateBookHandler(booksQueries),
+		createBookByCodeHandler: bookcode.NewCreateBookByCodeHandler(bookcodeQueries, bookInfoSources),
+		listBooksHandler:        books.NewListBooksHandler(booksQueries),
 	}
 
 	mux := http.NewServeMux()

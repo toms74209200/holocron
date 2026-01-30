@@ -1,2 +1,4 @@
 holocron/internal/book/domain
+holocron/internal/bookcode/domain
+holocron/internal/books/domain
 holocron/internal/user/domain

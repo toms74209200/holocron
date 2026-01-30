@@ -3,9 +3,11 @@
 package domain
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/leanovate/gopter"
+	"github.com/leanovate/gopter/gen"
 	"github.com/leanovate/gopter/prop"
 )
 
@@ -34,4 +36,13 @@ func TestToSearchKeyword_WithEmptyString_ReturnsNil(t *testing.T) {
 	if k != nil {
 		t.Errorf("expected nil, got %v", k)
 	}
+}
+
+func genNonEmptyString() gopter.Gen {
+	return gen.IntRange(1, 20).FlatMap(func(v interface{}) gopter.Gen {
+		length := v.(int)
+		return gen.SliceOfN(length, gen.NumChar()).Map(func(chars []rune) string {
+			return string(chars)
+		})
+	}, reflect.TypeOf(""))
 }

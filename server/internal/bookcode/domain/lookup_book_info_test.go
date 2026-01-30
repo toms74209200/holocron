@@ -5,6 +5,8 @@ import (
 	"errors"
 	"testing"
 
+	book "holocron/internal/book/domain"
+
 	"github.com/leanovate/gopter"
 	"github.com/leanovate/gopter/gen"
 	"github.com/leanovate/gopter/prop"
@@ -23,16 +25,16 @@ func TestLookupBookInfo_WithSuccessAtIndex_ReturnsSuccessValue(t *testing.T) {
 			sources := make([]BookInfoSource, n)
 			for i := range sources {
 				if i < successIndex {
-					sources[i] = func(ctx context.Context, code string) (*BookInfo, error) {
+					sources[i] = func(ctx context.Context, code string) (*book.BookInfo, error) {
 						return nil, errors.New("fail")
 					}
 				} else if i == successIndex {
-					sources[i] = func(ctx context.Context, code string) (*BookInfo, error) {
-						return &BookInfo{Title: title}, nil
+					sources[i] = func(ctx context.Context, code string) (*book.BookInfo, error) {
+						return &book.BookInfo{Title: title}, nil
 					}
 				} else {
-					sources[i] = func(ctx context.Context, code string) (*BookInfo, error) {
-						return &BookInfo{Title: "wrong"}, nil
+					sources[i] = func(ctx context.Context, code string) (*book.BookInfo, error) {
+						return &book.BookInfo{Title: "wrong"}, nil
 					}
 				}
 			}
@@ -55,13 +57,13 @@ func TestLookupBookInfo_WithAllFailing_ReturnsNotFoundError(t *testing.T) {
 		func(n int) bool {
 			sources := make([]BookInfoSource, n)
 			for i := range sources {
-				sources[i] = func(ctx context.Context, code string) (*BookInfo, error) {
+				sources[i] = func(ctx context.Context, code string) (*book.BookInfo, error) {
 					return nil, errors.New("fail")
 				}
 			}
 
 			_, err := LookupBookInfo(context.Background(), sources, "code")
-			return err == ErrBookNotFound
+			return err == book.ErrBookNotFound
 		},
 		gen.IntRange(0, 10),
 	))

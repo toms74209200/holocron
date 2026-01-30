@@ -1,4 +1,4 @@
-package book
+package bookcode
 
 import (
 	"encoding/json"
@@ -6,7 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"holocron/internal/book/domain"
+	book "holocron/internal/book/domain"
+	"holocron/internal/bookcode/domain"
 )
 
 type CreateBookByCodeHandler struct {
@@ -38,7 +39,7 @@ func (h *CreateBookByCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		switch {
 		case errors.Is(err, ErrInvalidCode):
 			writeError(w, http.StatusBadRequest, "invalid_request", "code must not be empty")
-		case errors.Is(err, domain.ErrBookNotFound):
+		case errors.Is(err, book.ErrBookNotFound):
 			writeError(w, http.StatusNotFound, "not_found", "book not found in external APIs")
 		case errors.Is(err, ErrInvalidTitle):
 			writeError(w, http.StatusBadRequest, "invalid_request", "external API returned invalid title")
@@ -62,5 +63,14 @@ func (h *CreateBookByCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		"thumbnailUrl":  output.ThumbnailURL,
 		"status":        output.Status,
 		"createdAt":     output.CreatedAt.Format(time.RFC3339),
+	})
+}
+
+func writeError(w http.ResponseWriter, status int, code, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(map[string]string{
+		"code":    code,
+		"message": message,
 	})
 }

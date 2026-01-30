@@ -1,4 +1,4 @@
-package book
+package bookcode
 
 import (
 	"context"
@@ -9,24 +9,24 @@ import (
 	"os"
 )
 
-type GoogleBooksFetcher struct {
+type OpenBDFetcher struct {
 	baseURL string
 	client  *http.Client
 }
 
-func NewGoogleBooksFetcher() (*GoogleBooksFetcher, error) {
-	baseURL := os.Getenv("GOOGLE_BOOKS_API_URL")
+func NewOpenBDFetcher() (*OpenBDFetcher, error) {
+	baseURL := os.Getenv("OPENBD_API_URL")
 	if baseURL == "" {
-		return nil, fmt.Errorf("GOOGLE_BOOKS_API_URL is not set")
+		return nil, fmt.Errorf("OPENBD_API_URL is not set")
 	}
-	return &GoogleBooksFetcher{
+	return &OpenBDFetcher{
 		baseURL: baseURL,
 		client:  http.DefaultClient,
 	}, nil
 }
 
-func (f *GoogleBooksFetcher) Fetch(ctx context.Context, code string) ([]byte, error) {
-	reqURL := fmt.Sprintf("%s/volumes?q=%s", f.baseURL, url.QueryEscape("isbn:"+code))
+func (f *OpenBDFetcher) Fetch(ctx context.Context, code string) ([]byte, error) {
+	reqURL := fmt.Sprintf("%s/get?isbn=%s", f.baseURL, url.QueryEscape(code))
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
 	if err != nil {
@@ -40,7 +40,7 @@ func (f *GoogleBooksFetcher) Fetch(ctx context.Context, code string) ([]byte, er
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("google books api returned status %d", resp.StatusCode)
+		return nil, fmt.Errorf("openbd api returned status %d", resp.StatusCode)
 	}
 
 	return io.ReadAll(resp.Body)

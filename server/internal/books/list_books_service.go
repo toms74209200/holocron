@@ -1,9 +1,9 @@
-package book
+package books
 
 import (
 	"context"
 
-	"holocron/internal/book/domain"
+	"holocron/internal/books/domain"
 )
 
 type ListBooksInput struct {

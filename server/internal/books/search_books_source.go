@@ -1,10 +1,10 @@
-package book
+package books
 
 import (
 	"context"
 	"database/sql"
 
-	"holocron/internal/book/domain"
+	"holocron/internal/books/domain"
 )
 
 func SearchBooksSource(queries *Queries) domain.BookListSource {

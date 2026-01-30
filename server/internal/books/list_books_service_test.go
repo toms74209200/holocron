@@ -1,12 +1,12 @@
 //go:build medium
 
-package book
+package books
 
 import (
 	"context"
 	"testing"
 
-	"holocron/internal/book/domain"
+	"holocron/internal/books/domain"
 )
 
 func TestSearchBooksSource_WithKeyword_ReturnsMatchingBooks(t *testing.T) {
