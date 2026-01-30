@@ -23,18 +23,19 @@ type server struct {
 	createUserHandler       *user.CreateUserHandler
 	createBookHandler       *book.CreateBookHandler
 	createBookByCodeHandler *book.CreateBookByCodeHandler
+	listBooksHandler        *book.ListBooksHandler
 }
 
+func (s *server) GetBooks(w http.ResponseWriter, r *http.Request, params api.GetBooksParams) {
+	s.listBooksHandler.ServeHTTP(w, r, params)
+}
 func (s *server) PostBooks(w http.ResponseWriter, r *http.Request) {
 	s.createBookHandler.ServeHTTP(w, r)
-}
-func (s *server) GetBooksCode(w http.ResponseWriter, r *http.Request, params api.GetBooksCodeParams) {
-	notImplemented(w)
 }
 func (s *server) PostBooksCode(w http.ResponseWriter, r *http.Request) {
 	s.createBookByCodeHandler.ServeHTTP(w, r)
 }
-func (s *server) GetBooks(w http.ResponseWriter, r *http.Request, bookId openapi_types.UUID) {
+func (s *server) GetBook(w http.ResponseWriter, r *http.Request, bookId openapi_types.UUID) {
 	notImplemented(w)
 }
 func (s *server) PostBooksBookId(w http.ResponseWriter, r *http.Request, bookId openapi_types.UUID) {
@@ -120,7 +121,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	sources := []domain.BookInfoSource{
+	bookInfoSources := []domain.BookInfoSource{
 		book.DBCacheSource(bookQueries),
 		book.ExternalAPISource(googleBooksFetcher.Fetch, domain.BookInfoFromGoogleBooks),
 		book.ExternalAPISource(openBDFetcher.Fetch, domain.BookInfoFromOpenBD),
@@ -129,7 +130,8 @@ func main() {
 	srv := &server{
 		createUserHandler:       user.NewCreateUserHandler(userQueries, firebaseAuth),
 		createBookHandler:       book.NewCreateBookHandler(bookQueries),
-		createBookByCodeHandler: book.NewCreateBookByCodeHandler(bookQueries, sources),
+		createBookByCodeHandler: book.NewCreateBookByCodeHandler(bookQueries, bookInfoSources),
+		listBooksHandler:        book.NewListBooksHandler(bookQueries),
 	}
 
 	mux := http.NewServeMux()
