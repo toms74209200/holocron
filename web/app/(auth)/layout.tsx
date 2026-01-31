@@ -21,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="ja">
       <body className={`${bizUDPGothic.variable} antialiased`}>
         <QueryProvider>
           <AuthProvider>{children}</AuthProvider>
