@@ -1,26 +1,45 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
+  --color-orange-*: initial;
+  --color-yellow-*: initial;
+  --color-lime-*: initial;
+  --color-green-*: initial;
+  --color-teal-*: initial;
+  --color-cyan-*: initial;
+  --color-blue-*: initial;
+  --color-indigo-*: initial;
+  --color-violet-*: initial;
+  --color-purple-*: initial;
+  --color-fuchsia-*: initial;
+  --color-pink-*: initial;
+  --color-rose-*: initial;
+  --color-zinc-*: initial;
+  --color-gray-*: initial;
+  --color-neutral-*: initial;
+  --color-stone-*: initial;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --font-sans: var(--font-biz-udp-gothic), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+}
+
+:root {
+  --background: var(--color-slate-50);
+  --foreground: var(--color-slate-900);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: var(--color-slate-950);
+    --foreground: var(--color-slate-100);
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "BIZ UDPGothic", Arial, Helvetica, sans-serif;
 }

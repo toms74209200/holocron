@@ -8,9 +8,12 @@
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write",
+    "test": "vitest run --silent --config=vite.config.ts",
+    "test:small": "vitest run --silent --config=vite.small.config.ts",
     "generate:openapi": "openapi-typescript ../spec/openapi.yml -o ./app/_lib/api.d.ts"
   },
   "dependencies": {
+    "@iconify/react": "^6.0.2",
     "@tanstack/react-query": "^5.90.20",
     "firebase": "^12.8.0",
     "next": "16.1.6",
@@ -28,6 +31,7 @@
     "@types/react-dom": "^19",
     "openapi-typescript": "^7.10.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^2.1.8"
   }
 }

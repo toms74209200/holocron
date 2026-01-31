@@ -9,9 +9,13 @@ on:
 
 jobs:
   lint:
-    name: Lint and Format
     uses: ./.github/workflows/job-web-lint.yml
 
   build:
-    name: Build
     uses: ./.github/workflows/job-web-build.yml
+
+  test-small:
+    needs:
+      - lint
+      - build
+    uses: ./.github/workflows/job-web-test-small.yml
