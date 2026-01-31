@@ -13,6 +13,7 @@
     "generate:openapi": "openapi-typescript ../spec/openapi.yml -o ./app/_lib/api.d.ts"
   },
   "dependencies": {
+    "@iconify/react": "^6.0.2",
     "@tanstack/react-query": "^5.90.20",
     "firebase": "^12.8.0",
     "next": "16.1.6",
