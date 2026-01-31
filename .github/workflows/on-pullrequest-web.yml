@@ -1,0 +1,17 @@
+name: On Pull Request(Web)
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'web/**'
+
+jobs:
+  lint:
+    name: Lint and Format
+    uses: ./.github/workflows/job-web-lint.yml
+
+  build:
+    name: Build
+    uses: ./.github/workflows/job-web-build.yml
