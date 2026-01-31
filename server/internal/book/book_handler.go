@@ -29,6 +29,14 @@ func (h *GetBookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request, bookI
 			writeError(w, http.StatusNotFound, "not_found", "book not found")
 			return
 		}
+		if errors.Is(err, ErrInvalidBookID) {
+			writeError(w, http.StatusBadRequest, "invalid_request", "invalid book ID")
+			return
+		}
+		if errors.Is(err, ErrInvalidBookRow) {
+			writeError(w, http.StatusInternalServerError, "internal_error", "invalid book data")
+			return
+		}
 		writeError(w, http.StatusInternalServerError, "internal_error", "internal server error")
 		return
 	}

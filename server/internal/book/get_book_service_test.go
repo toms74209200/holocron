@@ -72,6 +72,18 @@ func TestGetBook_WithExistingBook_ReturnsBook(t *testing.T) {
 	}
 }
 
+func TestGetBook_WithEmptyID_ReturnsInvalidIDError(t *testing.T) {
+	db := setupTestDB(t)
+	queries := New(db)
+	ctx := context.Background()
+
+	_, err := GetBook(ctx, queries, GetBookInput{BookID: ""})
+
+	if !errors.Is(err, ErrInvalidBookID) {
+		t.Errorf("expected ErrInvalidBookID, got %v", err)
+	}
+}
+
 func TestGetBook_WithNonExistentID_ReturnsNotFoundError(t *testing.T) {
 	db := setupTestDB(t)
 	queries := New(db)
@@ -169,5 +181,49 @@ func TestGetBook_WithOptionalFields_ReturnsValues(t *testing.T) {
 	}
 	if output.ThumbnailURL == nil || *output.ThumbnailURL != "https://example.com/thumb.jpg" {
 		t.Errorf("expected ThumbnailURL, got %v", output.ThumbnailURL)
+	}
+}
+
+func TestGetBook_WithReregisteredBook_ReturnsBook(t *testing.T) {
+	db := setupTestDB(t)
+	queries := New(db)
+	ctx := context.Background()
+
+	bookID := "reregistered-book-id"
+	_, err := db.ExecContext(ctx, `
+		INSERT INTO book_events (event_id, book_id, event_type, title, authors, occurred_at)
+		VALUES ('event-1', ?, 'created', 'Old Title', '["Old Author"]', '2024-01-01T00:00:00Z')
+	`, bookID)
+	if err != nil {
+		t.Fatalf("failed to insert first created event: %v", err)
+	}
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO book_events (event_id, book_id, event_type, occurred_at)
+		VALUES ('event-2', ?, 'deleted', '2024-01-02T00:00:00Z')
+	`, bookID)
+	if err != nil {
+		t.Fatalf("failed to insert deleted event: %v", err)
+	}
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO book_events (event_id, book_id, event_type, title, authors, occurred_at)
+		VALUES ('event-3', ?, 'created', 'New Title', '["New Author"]', '2024-01-03T00:00:00Z')
+	`, bookID)
+	if err != nil {
+		t.Fatalf("failed to insert second created event: %v", err)
+	}
+
+	output, err := GetBook(ctx, queries, GetBookInput{BookID: bookID})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if output.ID != bookID {
+		t.Errorf("expected ID %s, got %s", bookID, output.ID)
+	}
+	if output.Title != "New Title" {
+		t.Errorf("expected title 'New Title', got %s", output.Title)
+	}
+	if len(output.Authors) != 1 || output.Authors[0] != "New Author" {
+		t.Errorf("expected authors ['New Author'], got %v", output.Authors)
 	}
 }

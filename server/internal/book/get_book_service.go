@@ -8,7 +8,11 @@ import (
 	"time"
 )
 
-var ErrBookNotFound = errors.New("book not found")
+var (
+	ErrBookNotFound   = errors.New("book not found")
+	ErrInvalidBookID  = errors.New("invalid book ID")
+	ErrInvalidBookRow = errors.New("invalid book row")
+)
 
 type GetBookInput struct {
 	BookID string
@@ -28,7 +32,7 @@ type GetBookOutput struct {
 
 func GetBook(ctx context.Context, queries *Queries, input GetBookInput) (*GetBookOutput, error) {
 	if input.BookID == "" {
-		return nil, ErrBookNotFound
+		return nil, ErrInvalidBookID
 	}
 
 	row, err := queries.GetBookByBookId(ctx, input.BookID)
@@ -42,13 +46,13 @@ func GetBook(ctx context.Context, queries *Queries, input GetBookInput) (*GetBoo
 	var authors []string
 	if row.Authors.Valid {
 		if err := json.Unmarshal([]byte(row.Authors.String), &authors); err != nil {
-			return nil, err
+			return nil, ErrInvalidBookRow
 		}
 	}
 
 	createdAt, err := time.Parse(time.RFC3339, row.OccurredAt)
 	if err != nil {
-		return nil, err
+		return nil, ErrInvalidBookRow
 	}
 
 	return &GetBookOutput{
