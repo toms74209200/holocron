@@ -7,7 +7,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - FIREBASE_AUTH_EMULATOR_HOST=firebase:9099
+      - FIREBASE_AUTH_EMULATOR_HOST=firebase:19099
       - GOOGLE_BOOKS_API_URL=http://fake-google-books:4010
       - OPENBD_API_URL=http://fake-openbd:4011
     command: sleep infinity
@@ -20,15 +20,15 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST=firebase:9099
-      - NEXT_PUBLIC_APP_API_URL=http://server:8080
+      - NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST=localhost:19099
+      - NEXT_PUBLIC_APP_API_URL=http://localhost:8080
     command: sleep infinity
 
   firebase:
     image: motomotomato/firestore-emulator
     ports:
       - 4000:4000
-      - 9099:9099
+      - 19099:19099
     volumes:
       - ./firebase:/firebase
     working_dir: /firebase

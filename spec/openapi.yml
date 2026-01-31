@@ -42,6 +42,8 @@ paths:
                   type: string
                   description: ユーザー名（未指定の場合は自動生成）
                   maxLength: 50
+            example:
+              name: "ゲスト"
       responses:
         '201':
           description: ユーザー登録成功
@@ -69,6 +71,12 @@ paths:
                   updatedAt:
                     type: string
                     format: date-time
+              example:
+                id: "550e8400-e29b-41d4-a716-446655440000"
+                name: "ゲスト"
+                customToken: "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJwcm92aWRlcl9pZCI6ImFub255bW91cyIsImF1dGhfdGltZSI6MTc2OTgzMzIzMywidXNlcl9pZCI6InE3U3NEamo4R0JGUnZrdmt0M2s4dlRWb1NDN2wiLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7fSwic2lnbl9pbl9wcm92aWRlciI6ImFub255bW91cyJ9LCJpYXQiOjE3Njk4MzMyMzMsImV4cCI6MTc2OTgzNjgzMywiYXVkIjoiaG9sb2Nyb24iLCJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vaG9sb2Nyb24iLCJzdWIiOiJxN1NzRGpqOEdCRlJ2a3ZrdDNrOHZUVm9TQzdsIn0."
+                createdAt: "2024-01-15T10:30:00Z"
+                updatedAt: "2024-01-15T10:30:00Z"
         '400':
           description: リクエストが不正
           content:
@@ -200,6 +208,70 @@ paths:
                           format: date-time
                   total:
                     type: integer
+              example:
+                items:
+                  - id: "550e8400-e29b-41d4-a716-446655440001"
+                    code: "9784873119045"
+                    title: "Go言語によるWebアプリケーション開発"
+                    authors:
+                      - "Mat Ryer"
+                    publisher: "オライリージャパン"
+                    publishedDate: "2016-01-22"
+                    thumbnailUrl: "https://www.oreilly.co.jp/books/images/picture_large978-4-87311-752-2.jpeg"
+                    status: "available"
+                    createdAt: "2024-01-10T09:00:00Z"
+                  - id: "550e8400-e29b-41d4-a716-446655440002"
+                    code: "9784297126575"
+                    title: "プロを目指す人のためのTypeScript入門"
+                    authors:
+                      - "鈴木僚太"
+                    publisher: "技術評論社"
+                    publishedDate: "2022-04-22"
+                    thumbnailUrl: "https://gihyo.jp/assets/images/cover/2022/thumb/TH800_9784297127473.jpg"
+                    status: "borrowed"
+                    borrower:
+                      id: "550e8400-e29b-41d4-a716-446655440099"
+                      name: "ゲスト"
+                      borrowedAt: "2024-01-12T14:30:00Z"
+                    createdAt: "2024-01-08T11:00:00Z"
+                  - id: "550e8400-e29b-41d4-a716-446655440003"
+                    code: "9784873117584"
+                    title: "リーダブルコード"
+                    authors:
+                      - "Dustin Boswell"
+                      - "Trevor Foucher"
+                    publisher: "オライリージャパン"
+                    publishedDate: "2012-06-23"
+                    thumbnailUrl: "https://www.oreilly.co.jp/books/images/picture_large978-4-87311-565-8.jpeg"
+                    status: "available"
+                    createdAt: "2024-01-05T16:00:00Z"
+                  - id: "550e8400-e29b-41d4-a716-446655440004"
+                    code: "9784774142043"
+                    title: "Webを支える技術"
+                    authors:
+                      - "山本陽平"
+                    publisher: "技術評論社"
+                    publishedDate: "2010-04-08"
+                    thumbnailUrl: "https://gihyo.jp/assets/images/cover/2010/thumb/TH800_9784774142043.jpg"
+                    status: "available"
+                    createdAt: "2024-01-03T08:30:00Z"
+                  - id: "550e8400-e29b-41d4-a716-446655440005"
+                    code: "9784873118222"
+                    title: "プログラミングRust 第2版"
+                    authors:
+                      - "Jim Blandy"
+                      - "Jason Orendorff"
+                      - "Leonora F. S. Tindall"
+                    publisher: "オライリージャパン"
+                    publishedDate: "2022-01-19"
+                    thumbnailUrl: "https://www.oreilly.co.jp/books/images/picture_large978-4-87311-978-6.jpeg"
+                    status: "borrowed"
+                    borrower:
+                      id: "550e8400-e29b-41d4-a716-446655440098"
+                      name: "ゲスト"
+                      borrowedAt: "2024-01-14T10:00:00Z"
+                    createdAt: "2024-01-01T12:00:00Z"
+                total: 5
         '401':
           description: 認証が必要
           content:
@@ -214,6 +286,9 @@ paths:
                     type: string
                   message:
                     type: string
+              example:
+                code: "UNAUTHORIZED"
+                message: "認証が必要です"
 
     post:
       summary: 書籍登録（手動）
@@ -249,6 +324,13 @@ paths:
                   type: string
                   format: uri
                   description: サムネイル画像URL
+            example:
+              title: "詳解システム・パフォーマンス 第2版"
+              authors:
+                - "Brendan Gregg"
+              publisher: "オライリージャパン"
+              publishedDate: "2023-01-26"
+              thumbnailUrl: "https://www.oreilly.co.jp/books/images/picture_large978-4-87311-978-6.jpeg"
       responses:
         '201':
           description: 書籍登録成功
@@ -290,6 +372,16 @@ paths:
                   createdAt:
                     type: string
                     format: date-time
+              example:
+                id: "550e8400-e29b-41d4-a716-446655440010"
+                title: "詳解システム・パフォーマンス 第2版"
+                authors:
+                  - "Brendan Gregg"
+                publisher: "オライリージャパン"
+                publishedDate: "2023-01-26"
+                thumbnailUrl: "https://www.oreilly.co.jp/books/images/picture_large978-4-87311-978-6.jpeg"
+                status: "available"
+                createdAt: "2024-01-15T10:30:00Z"
         '400':
           description: リクエストが不正
           content:
@@ -304,6 +396,9 @@ paths:
                     type: string
                   message:
                     type: string
+              example:
+                code: "BAD_REQUEST"
+                message: "タイトルは必須です"
         '401':
           description: 認証が必要
           content:
@@ -318,6 +413,9 @@ paths:
                     type: string
                   message:
                     type: string
+              example:
+                code: "UNAUTHORIZED"
+                message: "認証が必要です"
 
   /books/code:
     post:
@@ -338,6 +436,8 @@ paths:
                 code:
                   type: string
                   description: バーコード（ISBN/雑誌コード/JANコード）
+            example:
+              code: "9784873119045"
       responses:
         '201':
           description: 書籍登録成功
@@ -379,6 +479,17 @@ paths:
                   createdAt:
                     type: string
                     format: date-time
+              example:
+                id: "550e8400-e29b-41d4-a716-446655440001"
+                code: "9784873119045"
+                title: "Go言語によるWebアプリケーション開発"
+                authors:
+                  - "Mat Ryer"
+                publisher: "オライリージャパン"
+                publishedDate: "2016-01-22"
+                thumbnailUrl: "https://www.oreilly.co.jp/books/images/picture_large978-4-87311-904-5.jpeg"
+                status: "available"
+                createdAt: "2024-01-15T10:30:00Z"
         '400':
           description: リクエストが不正
           content:
@@ -393,6 +504,9 @@ paths:
                     type: string
                   message:
                     type: string
+              example:
+                code: "BAD_REQUEST"
+                message: "codeは必須です"
         '401':
           description: 認証が必要
           content:
@@ -407,6 +521,9 @@ paths:
                     type: string
                   message:
                     type: string
+              example:
+                code: "UNAUTHORIZED"
+                message: "認証が必要です"
         '404':
           description: codeに該当する書籍情報が見つからない
           content:
@@ -421,6 +538,9 @@ paths:
                     type: string
                   message:
                     type: string
+              example:
+                code: "NOT_FOUND"
+                message: "指定されたコードに該当する書籍情報が見つかりません"
         '409':
           description: 書籍が既に登録されている
           content:
@@ -435,6 +555,9 @@ paths:
                     type: string
                   message:
                     type: string
+              example:
+                code: "CONFLICT"
+                message: "この書籍は既に登録されています"
 
   /books/{bookId}:
     get:
@@ -507,6 +630,17 @@ paths:
                   createdAt:
                     type: string
                     format: date-time
+              example:
+                id: "550e8400-e29b-41d4-a716-446655440001"
+                code: "9784873119045"
+                title: "Go言語によるWebアプリケーション開発"
+                authors:
+                  - "Mat Ryer"
+                publisher: "オライリージャパン"
+                publishedDate: "2016-01-22"
+                thumbnailUrl: "https://www.oreilly.co.jp/books/images/picture_large978-4-87311-904-5.jpeg"
+                status: "available"
+                createdAt: "2024-01-10T09:00:00Z"
         '401':
           description: 認証が必要
           content:
@@ -521,6 +655,9 @@ paths:
                     type: string
                   message:
                     type: string
+              example:
+                errorCode: "UNAUTHORIZED"
+                message: "認証が必要です"
         '404':
           description: 書籍が見つからない
           content:
@@ -535,6 +672,9 @@ paths:
                     type: string
                   message:
                     type: string
+              example:
+                code: "NOT_FOUND"
+                message: "指定された書籍が見つかりません"
 
     post:
       summary: 書籍情報更新
@@ -578,6 +718,11 @@ paths:
                   type: string
                   format: uri
                   description: サムネイル画像URL
+            example:
+              title: "Go言語によるWebアプリケーション開発（改訂版）"
+              authors:
+                - "Mat Ryer"
+              publisher: "オライリージャパン"
       responses:
         '200':
           description: 更新成功
@@ -619,6 +764,17 @@ paths:
                   createdAt:
                     type: string
                     format: date-time
+              example:
+                id: "550e8400-e29b-41d4-a716-446655440001"
+                code: "9784873119045"
+                title: "Go言語によるWebアプリケーション開発（改訂版）"
+                authors:
+                  - "Mat Ryer"
+                publisher: "オライリージャパン"
+                publishedDate: "2016-01-22"
+                thumbnailUrl: "https://www.oreilly.co.jp/books/images/picture_large978-4-87311-904-5.jpeg"
+                status: "available"
+                createdAt: "2024-01-10T09:00:00Z"
         '400':
           description: リクエストが不正
           content:
@@ -633,6 +789,9 @@ paths:
                     type: string
                   message:
                     type: string
+              example:
+                code: "BAD_REQUEST"
+                message: "リクエストが不正です"
         '401':
           description: 認証が必要
           content:
@@ -647,6 +806,9 @@ paths:
                     type: string
                   message:
                     type: string
+              example:
+                code: "UNAUTHORIZED"
+                message: "認証が必要です"
         '404':
           description: 書籍が見つからない
           content:
@@ -661,6 +823,9 @@ paths:
                     type: string
                   message:
                     type: string
+              example:
+                code: "NOT_FOUND"
+                message: "指定された書籍が見つかりません"
 
   /books/{bookId}/borrow:
     post:
@@ -702,6 +867,11 @@ paths:
                   borrowedAt:
                     type: string
                     format: date-time
+              example:
+                id: "550e8400-e29b-41d4-a716-446655440020"
+                bookId: "550e8400-e29b-41d4-a716-446655440001"
+                borrowerId: "550e8400-e29b-41d4-a716-446655440000"
+                borrowedAt: "2024-01-15T10:30:00Z"
         '401':
           description: 認証が必要
           content:
@@ -716,6 +886,9 @@ paths:
                     type: string
                   message:
                     type: string
+              example:
+                code: "UNAUTHORIZED"
+                message: "認証が必要です"
         '404':
           description: 書籍が見つからない
           content:
@@ -730,6 +903,9 @@ paths:
                     type: string
                   message:
                     type: string
+              example:
+                code: "NOT_FOUND"
+                message: "指定された書籍が見つかりません"
         '409':
           description: 既に貸出中
           content:
@@ -744,6 +920,9 @@ paths:
                     type: string
                   message:
                     type: string
+              example:
+                code: "CONFLICT"
+                message: "この書籍は既に貸出中です"
 
   /books/{bookId}/return:
     post:
@@ -816,6 +995,17 @@ paths:
                   createdAt:
                     type: string
                     format: date-time
+              example:
+                id: "550e8400-e29b-41d4-a716-446655440001"
+                code: "9784873119045"
+                title: "Go言語によるWebアプリケーション開発"
+                authors:
+                  - "Mat Ryer"
+                publisher: "オライリージャパン"
+                publishedDate: "2016-01-22"
+                thumbnailUrl: "https://www.oreilly.co.jp/books/images/picture_large978-4-87311-904-5.jpeg"
+                status: "available"
+                createdAt: "2024-01-10T09:00:00Z"
         '401':
           description: 認証が必要
           content:
@@ -830,6 +1020,9 @@ paths:
                     type: string
                   message:
                     type: string
+              example:
+                code: "UNAUTHORIZED"
+                message: "認証が必要です"
         '404':
           description: 書籍が見つからない
           content:
@@ -844,6 +1037,9 @@ paths:
                     type: string
                   message:
                     type: string
+              example:
+                code: "NOT_FOUND"
+                message: "指定された書籍が見つかりません"
         '409':
           description: 貸出中ではない
           content:
@@ -858,6 +1054,9 @@ paths:
                     type: string
                   message:
                     type: string
+              example:
+                code: "CONFLICT"
+                message: "この書籍は貸出中ではありません"
 
 components:
   securitySchemes:
