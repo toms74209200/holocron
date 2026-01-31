@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "biome check",
-    "format": "biome format --write"
+    "format": "biome format --write",
+    "generate:openapi": "openapi-typescript ../spec/openapi.yml -o ./app/_lib/api.d.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.20",
@@ -20,6 +21,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
+    "@iconify/react": "^6.0.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
