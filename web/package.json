@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write",
+    "test": "vitest run --silent --config=vite.config.ts",
+    "test:small": "vitest run --silent --config=vite.small.config.ts",
     "generate:openapi": "openapi-typescript ../spec/openapi.yml -o ./app/_lib/api.d.ts"
   },
   "dependencies": {
@@ -28,6 +30,7 @@
     "@types/react-dom": "^19",
     "openapi-typescript": "^7.10.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^2.1.8"
   }
 }
