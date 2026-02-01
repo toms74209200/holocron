@@ -1,0 +1,21 @@
+name: On Push(Server)
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'server/**'
+
+jobs:
+  api-test:
+    uses: ./.github/workflows/job-api-test-test.yml
+  job-build-image:
+    needs:
+      - api-test
+    uses: ./.github/workflows/job-build-image.yml
+    with:
+      dockerfile_path: 'server/docker/Dockerfile'
+      context: '.'
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
