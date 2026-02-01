@@ -1,74 +1,130 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useId, useState } from "react";
 import { useAuth } from "@/app/_components/AuthProvider";
 import { fetchClient } from "@/app/_lib/query";
 import { parseIsbn } from "../../_models/isbn";
-import { NewBookPage } from "./page.view";
+import { useScanner } from "./_components/useScanner";
+import { NewBookPage, type RegisteredBook } from "./page.view";
 
-function NewBookContent() {
+type InputMode = "scanner" | "manual";
+
+type RegistrationState =
+  | { status: "idle"; lastBook?: RegisteredBook }
+  | { status: "registering"; lastBook?: RegisteredBook }
+  | { status: "error"; message: string; lastBook?: RegisteredBook };
+
+export default function NewBook() {
   const authState = useAuth();
-  const router = useRouter();
   const queryClient = useQueryClient();
+  const elementId = useId().replace(/:/g, "");
+
   const [code, setCode] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [inputMode, setInputMode] = useState<InputMode>("scanner");
+  const [registrationState, setRegistrationState] = useState<RegistrationState>(
+    { status: "idle" },
+  );
 
-  if (authState.status !== "authenticated") {
-    throw new Error("NewBookContent requires authenticated user");
-  }
+  const user = authState.status === "authenticated" ? authState.user : null;
 
-  const { user } = authState;
+  const registerBook = useCallback(
+    async (isbn: string) => {
+      if (!user) {
+        return;
+      }
+
+      setRegistrationState((prev) => ({
+        status: "registering",
+        lastBook: prev.status !== "error" ? prev.lastBook : undefined,
+      }));
+
+      const token = await user.getIdToken();
+      const { data, error: apiError } = await fetchClient.POST("/books/code", {
+        body: { code: isbn },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (apiError || !data) {
+        setRegistrationState((prev) => ({
+          status: "error",
+          message: apiError?.message ?? "書籍登録に失敗しました",
+          lastBook: prev.status !== "error" ? prev.lastBook : undefined,
+        }));
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["books"] });
+        setRegistrationState({ status: "idle", lastBook: data });
+      }
+    },
+    [user, queryClient],
+  );
+
+  const handleScan = useCallback(
+    (decodedText: string) => {
+      const isbn = parseIsbn(decodedText);
+      if (!isbn) {
+        setRegistrationState({
+          status: "error",
+          message: "読み取ったコードがISBNの形式ではありません",
+        });
+      } else {
+        registerBook(isbn);
+      }
+    },
+    [registerBook],
+  );
+
+  const scannerState = useScanner(
+    elementId,
+    inputMode === "scanner" && !!user,
+    handleScan,
+  );
 
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     const isbn = parseIsbn(code);
     if (!isbn) {
-      setError("ISBNの形式が正しくありません");
+      setRegistrationState({
+        status: "error",
+        message: "ISBNの形式が正しくありません",
+      });
       return;
     }
-
-    setError(null);
-
-    router.push("/");
-
-    const token = await user.getIdToken();
-    const { error: apiError } = await fetchClient.POST("/books/code", {
-      body: { code: isbn },
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (apiError) {
-      console.error("書籍登録に失敗しました:", apiError.message);
-    } else {
-      queryClient.invalidateQueries({ queryKey: ["books"] });
-    }
+    await registerBook(isbn);
   };
 
-  return (
-    <NewBookPage
-      code={code}
-      error={error}
-      onChangeCode={setCode}
-      onSubmit={handleSubmit}
-    />
-  );
-}
+  const handleRetry = () => {
+    setCode("");
+    setRegistrationState({ status: "idle" });
+  };
 
-export default function NewBook() {
-  const authState = useAuth();
-
-  if (authState.status !== "authenticated") {
+  if (!user) {
     return (
       <NewBookPage
         code=""
-        error={null}
+        registrationState={{ status: "idle" }}
+        scannerState={{ status: "idle" }}
+        inputMode="scanner"
+        scannerId=""
         onChangeCode={() => {}}
+        onChangeInputMode={() => {}}
         onSubmit={() => {}}
+        onRetry={() => {}}
       />
     );
   }
 
-  return <NewBookContent />;
+  return (
+    <NewBookPage
+      code={code}
+      registrationState={registrationState}
+      scannerState={scannerState}
+      inputMode={inputMode}
+      scannerId={elementId}
+      onChangeCode={setCode}
+      onChangeInputMode={setInputMode}
+      onSubmit={handleSubmit}
+      onRetry={handleRetry}
+    />
+  );
 }
