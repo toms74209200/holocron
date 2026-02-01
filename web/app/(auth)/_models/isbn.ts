@@ -1,7 +1,9 @@
 export type Isbn = string & { readonly __brand: unique symbol };
 
 const checksumIsbn10 = (s: string) => {
-  if (s.length !== 10) return null;
+  if (s.length !== 10) {
+    return null;
+  }
   return s.split("").reduce((acc, char, index) => {
     const digit = char === "X" ? 10 : Number(char);
     return acc + digit * (10 - index);
@@ -13,7 +15,9 @@ const checksumIsbn10 = (s: string) => {
 };
 
 const checksumIsbn13 = (s: string) => {
-  if (s.length !== 13) return null;
+  if (s.length !== 13) {
+    return null;
+  }
   return s
     .split("")
     .map(Number)
