@@ -15,6 +15,7 @@ import (
 	"holocron/internal/bookcode"
 	bookcodeDomain "holocron/internal/bookcode/domain"
 	"holocron/internal/books"
+	"holocron/internal/lending"
 	"holocron/internal/user"
 
 	_ "modernc.org/sqlite"
@@ -28,6 +29,7 @@ type server struct {
 	createBookByCodeHandler *bookcode.CreateBookByCodeHandler
 	listBooksHandler        *books.ListBooksHandler
 	getBookHandler          *book.GetBookHandler
+	borrowBookHandler       *lending.BorrowBookHandler
 }
 
 func (s *server) GetBooks(w http.ResponseWriter, r *http.Request, params api.GetBooksParams) {
@@ -46,7 +48,7 @@ func (s *server) PostBooksBookId(w http.ResponseWriter, r *http.Request, bookId 
 	notImplemented(w)
 }
 func (s *server) PostBooksBorrow(w http.ResponseWriter, r *http.Request, bookId openapi_types.UUID) {
-	notImplemented(w)
+	s.borrowBookHandler.ServeHTTP(w, r)
 }
 func (s *server) PostBooksReturn(w http.ResponseWriter, r *http.Request, bookId openapi_types.UUID) {
 	notImplemented(w)
@@ -86,6 +88,19 @@ func initDB(database *sql.DB) error {
 		occurred_at TEXT NOT NULL
 	);
 	CREATE INDEX IF NOT EXISTS idx_book_events_book_id ON book_events(book_id);
+
+	CREATE TABLE IF NOT EXISTS lending_events (
+		event_id TEXT PRIMARY KEY,
+		lending_id TEXT NOT NULL,
+		book_id TEXT NOT NULL,
+		borrower_id TEXT NOT NULL,
+		event_type TEXT NOT NULL,
+		due_date TEXT,
+		occurred_at TEXT NOT NULL
+	);
+	CREATE INDEX IF NOT EXISTS idx_lending_events_lending_id ON lending_events(lending_id);
+	CREATE INDEX IF NOT EXISTS idx_lending_events_book_id ON lending_events(book_id);
+	CREATE INDEX IF NOT EXISTS idx_lending_events_borrower_id ON lending_events(borrower_id);
 	`
 	_, err := database.Exec(schema)
 	return err
@@ -117,6 +132,7 @@ func main() {
 	booksQueries := books.New(database)
 	bookcodeQueries := bookcode.New(database)
 	bookQueries := book.New(database)
+	lendingQueries := lending.New(database)
 
 	googleBooksFetcher, err := bookcode.NewGoogleBooksFetcher()
 	if err != nil {
@@ -133,12 +149,15 @@ func main() {
 		bookcode.ExternalAPISource(openBDFetcher.Fetch, bookDomain.BookInfoFromOpenBD),
 	}
 
+	borrowBookService := lending.NewBorrowBookService(lendingQueries, bookQueries)
+
 	srv := &server{
 		createUserHandler:       user.NewCreateUserHandler(userQueries, firebaseAuth),
 		createBookHandler:       books.NewCreateBookHandler(booksQueries),
 		createBookByCodeHandler: bookcode.NewCreateBookByCodeHandler(bookcodeQueries, bookInfoSources),
 		listBooksHandler:        books.NewListBooksHandler(booksQueries),
 		getBookHandler:          book.NewGetBookHandler(bookQueries),
+		borrowBookHandler:       lending.NewBorrowBookHandler(borrowBookService),
 	}
 
 	mux := http.NewServeMux()
