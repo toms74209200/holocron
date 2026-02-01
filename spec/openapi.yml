@@ -16,7 +16,7 @@ tags:
     description: ユーザー管理
   - name: Books
     description: 書籍管理
-  - name: Loans
+  - name: Lending
     description: 貸出・返却
 
 security:
@@ -833,7 +833,7 @@ paths:
       description: 指定した書籍を借りる。既に貸出中の場合はエラー。
       operationId: postBooksBorrow
       tags:
-        - Loans
+        - Lending
       parameters:
         - name: bookId
           in: path
@@ -842,6 +842,19 @@ paths:
           schema:
             type: string
             format: uuid
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dueDays:
+                  type: integer
+                  minimum: 1
+                  description: 貸出期間（日数）。未指定の場合は7日。
+            example:
+              dueDays: 14
       responses:
         '200':
           description: 貸出成功
@@ -854,6 +867,7 @@ paths:
                   - bookId
                   - borrowerId
                   - borrowedAt
+                  - dueDate
                 properties:
                   id:
                     type: string
@@ -867,11 +881,16 @@ paths:
                   borrowedAt:
                     type: string
                     format: date-time
+                  dueDate:
+                    type: string
+                    format: date-time
+                    description: 返却期限
               example:
                 id: "550e8400-e29b-41d4-a716-446655440020"
                 bookId: "550e8400-e29b-41d4-a716-446655440001"
                 borrowerId: "550e8400-e29b-41d4-a716-446655440000"
                 borrowedAt: "2024-01-15T10:30:00Z"
+                dueDate: "2024-01-22T10:30:00Z"
         '401':
           description: 認証が必要
           content:
@@ -930,7 +949,7 @@ paths:
       description: 指定した書籍を返却する。貸出中でない場合はエラー。
       operationId: postBooksReturn
       tags:
-        - Loans
+        - Lending
       parameters:
         - name: bookId
           in: path
