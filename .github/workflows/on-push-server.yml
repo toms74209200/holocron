@@ -13,9 +13,10 @@ jobs:
   job-build-image:
     needs:
       - api-test
+    permissions:
+      contents: read
+      packages: write
     uses: ./.github/workflows/job-build-image.yml
     with:
       dockerfile_path: 'server/docker/Dockerfile'
       context: '.'
-    secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
