@@ -36,7 +36,7 @@ jobs:
         working-directory: server
         run: go run . &
         env:
-          FIREBASE_AUTH_EMULATOR_HOST: localhost:9099
+          FIREBASE_AUTH_EMULATOR_HOST: localhost:19099
           FIREBASE_PROJECT_ID: holocron
           GOOGLE_BOOKS_API_URL: http://localhost:4010
           OPENBD_API_URL: http://localhost:4011
@@ -62,4 +62,4 @@ jobs:
         working-directory: api-tests
         run: uv run pytest tests/ -vv
         env:
-          FIREBASE_AUTH_EMULATOR_HOST: localhost:9099
+          FIREBASE_AUTH_EMULATOR_HOST: localhost:19099
