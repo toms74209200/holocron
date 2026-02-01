@@ -32,3 +32,11 @@ sql:
         package: "bookcode"
         out: "../server/internal/bookcode"
         output_files_suffix: "_gen"
+  - engine: "sqlite"
+    queries: "queries/lending.sql"
+    schema: "schema"
+    gen:
+      go:
+        package: "lending"
+        out: "../server/internal/lending"
+        output_files_suffix: "_gen"
