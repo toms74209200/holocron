@@ -41,6 +41,7 @@ jobs:
             server/internal/book/*_gen.go
             server/internal/bookcode/*_gen.go
             server/internal/books/*_gen.go
+            server/internal/lending/*_gen.go
             server/internal/user/*_gen.go
           key: generated-code-${{ github.sha }}
 
