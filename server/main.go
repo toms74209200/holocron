@@ -30,6 +30,7 @@ type server struct {
 	listBooksHandler        *books.ListBooksHandler
 	getBookHandler          *book.GetBookHandler
 	borrowBookHandler       *lending.BorrowBookHandler
+	returnBookHandler       *lending.ReturnBookHandler
 }
 
 func (s *server) GetBooks(w http.ResponseWriter, r *http.Request, params api.GetBooksParams) {
@@ -51,7 +52,7 @@ func (s *server) PostBooksBorrow(w http.ResponseWriter, r *http.Request, bookId 
 	s.borrowBookHandler.ServeHTTP(w, r)
 }
 func (s *server) PostBooksReturn(w http.ResponseWriter, r *http.Request, bookId openapi_types.UUID) {
-	notImplemented(w)
+	s.returnBookHandler.ServeHTTP(w, r)
 }
 
 func (s *server) PostUsers(w http.ResponseWriter, r *http.Request) {
@@ -150,6 +151,7 @@ func main() {
 	}
 
 	borrowBookService := lending.NewBorrowBookService(lendingQueries, bookQueries)
+	returnBookService := lending.NewReturnBookService(lendingQueries, bookQueries)
 
 	srv := &server{
 		createUserHandler:       user.NewCreateUserHandler(userQueries, firebaseAuth),
@@ -158,6 +160,7 @@ func main() {
 		listBooksHandler:        books.NewListBooksHandler(booksQueries),
 		getBookHandler:          book.NewGetBookHandler(bookQueries),
 		borrowBookHandler:       lending.NewBorrowBookHandler(borrowBookService),
+		returnBookHandler:       lending.NewReturnBookHandler(returnBookService, bookQueries),
 	}
 
 	mux := http.NewServeMux()
