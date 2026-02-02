@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -29,6 +28,7 @@ type server struct {
 	createBookByCodeHandler *bookcode.CreateBookByCodeHandler
 	listBooksHandler        *books.ListBooksHandler
 	getBookHandler          *book.GetBookHandler
+	updateBookHandler       *book.UpdateBookHandler
 	borrowBookHandler       *lending.BorrowBookHandler
 	returnBookHandler       *lending.ReturnBookHandler
 }
@@ -46,7 +46,7 @@ func (s *server) GetBook(w http.ResponseWriter, r *http.Request, bookId openapi_
 	s.getBookHandler.ServeHTTP(w, r, bookId)
 }
 func (s *server) PostBooksBookId(w http.ResponseWriter, r *http.Request, bookId openapi_types.UUID) {
-	notImplemented(w)
+	s.updateBookHandler.ServeHTTP(w, r, bookId)
 }
 func (s *server) PostBooksBorrow(w http.ResponseWriter, r *http.Request, bookId openapi_types.UUID) {
 	s.borrowBookHandler.ServeHTTP(w, r)
@@ -57,12 +57,6 @@ func (s *server) PostBooksReturn(w http.ResponseWriter, r *http.Request, bookId 
 
 func (s *server) PostUsers(w http.ResponseWriter, r *http.Request) {
 	s.createUserHandler.ServeHTTP(w, r)
-}
-
-func notImplemented(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusNotImplemented)
-	_ = json.NewEncoder(w).Encode(map[string]string{"message": "not implemented"})
 }
 
 func initDB(database *sql.DB) error {
@@ -159,6 +153,7 @@ func main() {
 		createBookByCodeHandler: bookcode.NewCreateBookByCodeHandler(bookcodeQueries, bookInfoSources),
 		listBooksHandler:        books.NewListBooksHandler(booksQueries),
 		getBookHandler:          book.NewGetBookHandler(bookQueries),
+		updateBookHandler:       book.NewUpdateBookHandler(bookQueries),
 		borrowBookHandler:       lending.NewBorrowBookHandler(borrowBookService),
 		returnBookHandler:       lending.NewReturnBookHandler(returnBookService, bookQueries),
 	}
