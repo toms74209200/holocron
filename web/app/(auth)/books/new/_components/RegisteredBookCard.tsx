@@ -1,3 +1,5 @@
+// biome-ignore-all lint/performance/noImgElement: Image content can be external
+
 import { Icon } from "@iconify/react";
 import type { FC } from "react";
 import type { RegisteredBook } from "../page.view";
