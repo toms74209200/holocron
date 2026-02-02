@@ -173,8 +173,10 @@ export const HomePage: React.FC<HomePageProps> = ({
           <ul className={["space-y-3"].join(" ")}>
             {books.map((book) => (
               <li key={book.id}>
-                <div
+                <Link
+                  href={`/books/${book.id}`}
                   className={[
+                    "block",
                     "rounded-xl",
                     "border",
                     "border-slate-200",
@@ -194,7 +196,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                     borrower={book.borrower}
                     thumbnailUrl={book.thumbnailUrl}
                   />
-                </div>
+                </Link>
               </li>
             ))}
           </ul>
