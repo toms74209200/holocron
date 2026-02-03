@@ -174,7 +174,7 @@ export const HomePage: React.FC<HomePageProps> = ({
             {books.map((book) => (
               <li key={book.id}>
                 <Link
-                  href={`/books/${book.id}`}
+                  href={`/book?id=${book.id}`}
                   className={[
                     "block",
                     "rounded-xl",

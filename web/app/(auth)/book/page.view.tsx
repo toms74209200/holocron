@@ -4,8 +4,8 @@ import { Icon } from "@iconify/react";
 import Link from "next/link";
 import type { FC } from "react";
 import { Temporal } from "temporal-polyfill";
-import { BookInfoCard } from "../../_components/BookInfoCard";
-import type { Book } from "../../_models/book";
+import { BookInfoCard } from "../_components/BookInfoCard";
+import type { Book } from "../_models/book";
 
 type ActionState =
   | { status: "idle" }
