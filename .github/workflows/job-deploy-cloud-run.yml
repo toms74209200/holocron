@@ -1,0 +1,47 @@
+name: Job - Deploy to Cloud Run
+
+on:
+  workflow_call:
+    inputs:
+      image_tag:
+        description: 'Docker image tag to deploy'
+        required: true
+        type: string
+    secrets:
+      GCP_WORKLOAD_IDENTITY_PROVIDER:
+        required: true
+      GCP_SERVICE_ACCOUNT:
+        required: true
+      GCP_REGION:
+        required: true
+      GCP_PROJECT_ID:
+        required: true
+      GCP_ARTIFACT_REGISTRY_REPO:
+        required: true
+      CLOUD_RUN_SERVICE_NAME:
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ${{ secrets.CLOUD_RUN_SERVICE_NAME }} \
+            --image="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/server:${{ inputs.image_tag }}" \
+            --region=${{ secrets.GCP_REGION }} \
+            --platform=managed \
+            --allow-unauthenticated \
+            --port=8080 \
+            --cpu=1 \
+            --memory=512Mi \
+            --max-instances=1 \
+            --set-env-vars="GOOGLE_BOOKS_API_URL=https://www.googleapis.com/books/v1,OPENBD_API_URL=https://api.openbd.jp/v1,FIREBASE_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}"
