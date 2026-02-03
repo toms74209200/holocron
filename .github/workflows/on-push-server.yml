@@ -6,17 +6,35 @@ on:
       - master
     paths:
       - 'server/**'
+  workflow_dispatch:
 
 jobs:
   api-test:
     uses: ./.github/workflows/job-api-test-test.yml
-  job-build-image:
+
+  build-image:
+    name: Build Image
     needs:
       - api-test
-    permissions:
-      contents: read
-      packages: write
     uses: ./.github/workflows/job-build-image.yml
+    secrets:
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      GCP_REGION: ${{ secrets.GCP_REGION }}
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      GCP_ARTIFACT_REGISTRY_REPO: ${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}
+
+  deploy:
+    name: Deploy to Cloud Run
+    needs:
+      - build-image
+    uses: ./.github/workflows/job-deploy-cloud-run.yml
     with:
-      dockerfile_path: 'server/docker/Dockerfile'
-      context: '.'
+      image_tag: ${{ needs.build-image.outputs.image_tag }}
+    secrets:
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      GCP_REGION: ${{ secrets.GCP_REGION }}
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      GCP_ARTIFACT_REGISTRY_REPO: ${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}
+      CLOUD_RUN_SERVICE_NAME: ${{ secrets.CLOUD_RUN_SERVICE_NAME }}
