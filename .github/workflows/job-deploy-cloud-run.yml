@@ -20,6 +20,8 @@ on:
         required: true
       CLOUD_RUN_SERVICE_NAME:
         required: true
+      ALLOWED_ORIGIN:
+        required: true
 
 jobs:
   deploy:
@@ -44,4 +46,4 @@ jobs:
             --cpu=1 \
             --memory=512Mi \
             --max-instances=1 \
-            --set-env-vars="GOOGLE_BOOKS_API_URL=https://www.googleapis.com/books/v1,OPENBD_API_URL=https://api.openbd.jp/v1,FIREBASE_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}"
+            --set-env-vars="GOOGLE_BOOKS_API_URL=https://www.googleapis.com/books/v1,OPENBD_API_URL=https://api.openbd.jp/v1,FIREBASE_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},ALLOWED_ORIGIN=${{ secrets.ALLOWED_ORIGIN }}"
