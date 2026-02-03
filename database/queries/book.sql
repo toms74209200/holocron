@@ -23,3 +23,7 @@ WHERE b.book_id = ?
 SELECT COUNT(*) AS cnt
 FROM book_events
 WHERE book_id = ? AND event_type = 'created';
+
+-- name: InsertBookUpdateEvent :exec
+INSERT INTO book_events (event_id, book_id, event_type, code, title, authors, publisher, published_date, thumbnail_url, occurred_at)
+VALUES (?, ?, 'updated', ?, ?, ?, ?, ?, ?, ?);
