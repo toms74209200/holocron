@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"holocron/internal/api"
 	"holocron/internal/auth"
@@ -158,10 +159,16 @@ func main() {
 		returnBookHandler:       lending.NewReturnBookHandler(returnBookService, bookQueries),
 	}
 
+	allowedOrigin := os.Getenv("ALLOWED_ORIGIN")
+	if allowedOrigin == "" {
+		allowedOrigin = "http://localhost:3000"
+	}
+
 	mux := http.NewServeMux()
 	api.HandlerWithOptions(srv, api.StdHTTPServerOptions{
 		BaseRouter: mux,
 		Middlewares: []api.MiddlewareFunc{
+			auth.CORSMiddleware(allowedOrigin),
 			auth.AuthMiddleware(firebaseAuth),
 		},
 	})
