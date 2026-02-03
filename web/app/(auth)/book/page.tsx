@@ -1,11 +1,12 @@
 "use client";
 
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { Suspense, use, useCallback, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useState } from "react";
 import { Temporal } from "temporal-polyfill";
 import { useAuth } from "@/app/_components/AuthProvider";
 import { fetchClient } from "@/app/_lib/query";
-import type { Book } from "../../_models/book";
+import type { Book } from "../_models/book";
 import { BookDetailPage } from "./page.view";
 
 type ActionState =
@@ -148,27 +149,28 @@ function BookDetailContent({ bookId }: { bookId: string }) {
   );
 }
 
-export default function BookDetail({
-  params,
-}: {
-  params: Promise<{ bookId: string }>;
-}) {
-  const { bookId } = use(params);
+const loadingBook: Book = {
+  id: "",
+  title: "読み込み中...",
+  authors: [],
+  thumbnailUrl: "",
+  status: "available",
+  createdAt: "",
+};
+
+function BookDetailInner() {
+  const searchParams = useSearchParams();
+  const bookId = searchParams.get("id");
   const authState = useAuth();
 
-  const loadingBook: Book = {
-    id: bookId,
-    title: "読み込み中...",
-    authors: [],
-    thumbnailUrl: "",
-    status: "available",
-    createdAt: "",
-  };
+  if (!bookId) {
+    return <div>書籍IDが指定されていません</div>;
+  }
 
   if (authState.status !== "authenticated") {
     return (
       <BookDetailPage
-        book={loadingBook}
+        book={{ ...loadingBook, id: bookId }}
         actionState={{ status: "idle" }}
         currentUserId=""
         dueDate=""
@@ -185,7 +187,7 @@ export default function BookDetail({
     <Suspense
       fallback={
         <BookDetailPage
-          book={loadingBook}
+          book={{ ...loadingBook, id: bookId }}
           actionState={{ status: "idle" }}
           currentUserId={authState.user.uid}
           dueDate=""
@@ -198,6 +200,28 @@ export default function BookDetail({
       }
     >
       <BookDetailContent bookId={bookId} />
+    </Suspense>
+  );
+}
+
+export default function BookDetail() {
+  return (
+    <Suspense
+      fallback={
+        <BookDetailPage
+          book={loadingBook}
+          actionState={{ status: "idle" }}
+          currentUserId=""
+          dueDate=""
+          onBorrowClick={() => {}}
+          onBorrowConfirm={() => {}}
+          onBorrowCancel={() => {}}
+          onDueDateChange={() => {}}
+          onReturn={() => {}}
+        />
+      }
+    >
+      <BookDetailInner />
     </Suspense>
   );
 }
