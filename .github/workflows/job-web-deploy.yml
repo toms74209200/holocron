@@ -13,6 +13,8 @@ on:
         required: true
       FIREBASE_AUTH_DOMAIN:
         required: true
+      APP_API_URL:
+        required: true
 
 jobs:
   deploy:
@@ -38,6 +40,7 @@ jobs:
           NEXT_PUBLIC_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
           NEXT_PUBLIC_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
           NEXT_PUBLIC_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_APP_API_URL: ${{ secrets.APP_API_URL }}
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
