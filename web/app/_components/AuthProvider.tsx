@@ -2,11 +2,12 @@
 
 import {
   onAuthStateChanged,
-  signInAnonymously,
+  signInWithCustomToken,
   type User,
 } from "firebase/auth";
 import { createContext, useContext, useEffect, useState } from "react";
 import { getFirebaseAuth } from "@/app/_lib/firebase";
+import { fetchClient } from "@/app/_lib/query";
 
 type AuthState =
   | { status: "initializing" }
@@ -30,7 +31,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setAuthState({ status: "authenticated", user });
       } else {
         setAuthState({ status: "signing_in" });
-        await signInAnonymously(auth);
+        const { data, error } = await fetchClient.POST("/users", {
+          body: {},
+        });
+        if (error || !data) {
+          console.error("Failed to create user:", error);
+          return;
+        }
+        await signInWithCustomToken(auth, data.customToken);
       }
     });
 
