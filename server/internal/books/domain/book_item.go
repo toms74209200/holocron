@@ -35,7 +35,7 @@ func BookItemFromRow(
 	publisher *string,
 	publishedDate *string,
 	thumbnailURL *string,
-	occurredAt string,
+	createdAtRaw interface{},
 	borrowerID *string,
 	borrowerName *string,
 	borrowedAt *string,
@@ -47,7 +47,11 @@ func BookItemFromRow(
 		}
 	}
 
-	createdAt, err := time.Parse(time.RFC3339, occurredAt)
+	createdAtStr, ok := createdAtRaw.(string)
+	if !ok || createdAtStr == "" {
+		return nil, ErrInvalidBookRow
+	}
+	createdAt, err := time.Parse(time.RFC3339, createdAtStr)
 	if err != nil {
 		return nil, ErrInvalidBookRow
 	}

@@ -18,7 +18,16 @@ latest_books AS (
         e1.publisher,
         e1.published_date,
         e1.thumbnail_url,
-        e1.occurred_at,
+        (SELECT MIN(e_created.occurred_at)
+         FROM book_events e_created
+         WHERE e_created.book_id = e1.book_id
+           AND e_created.event_type = 'created'
+           AND e_created.occurred_at > COALESCE(
+               (SELECT MAX(e_del.occurred_at) FROM book_events e_del WHERE e_del.book_id = e1.book_id AND e_del.event_type = 'deleted'),
+               '1970-01-01T00:00:00Z'
+           )
+        ) as created_at,
+        e1.occurred_at as updated_at,
         ROW_NUMBER() OVER (PARTITION BY e1.book_id ORDER BY e1.occurred_at DESC) as rn
     FROM book_events e1
     LEFT JOIN deleted_books d ON e1.book_id = d.book_id
@@ -35,6 +44,10 @@ current_lendings AS (
     FROM lending_events le
     INNER JOIN user_events ue ON ue.user_id = le.borrower_id AND ue.event_type = 'created'
     WHERE le.event_type = 'borrowed'
+        AND le.occurred_at > COALESCE(
+            (SELECT MAX(e2.occurred_at) FROM book_events e2 WHERE e2.book_id = le.book_id AND e2.event_type = 'deleted'),
+            '1970-01-01T00:00:00Z'
+        )
         AND NOT EXISTS (
             SELECT 1
             FROM lending_events returned
@@ -50,14 +63,15 @@ SELECT
     lb.publisher,
     lb.published_date,
     lb.thumbnail_url,
-    lb.occurred_at,
+    lb.created_at,
+    lb.updated_at,
     cl.borrower_id,
     cl.borrower_name,
     cl.borrowed_at
 FROM latest_books lb
 LEFT JOIN current_lendings cl ON lb.book_id = cl.book_id AND cl.rn = 1
 WHERE lb.rn = 1
-ORDER BY lb.occurred_at DESC
+ORDER BY lb.updated_at DESC
 LIMIT ? OFFSET ?;
 
 -- name: CountBooks :one
@@ -85,7 +99,16 @@ latest_books AS (
         e1.publisher,
         e1.published_date,
         e1.thumbnail_url,
-        e1.occurred_at,
+        (SELECT MIN(e_created.occurred_at)
+         FROM book_events e_created
+         WHERE e_created.book_id = e1.book_id
+           AND e_created.event_type = 'created'
+           AND e_created.occurred_at > COALESCE(
+               (SELECT MAX(e_del.occurred_at) FROM book_events e_del WHERE e_del.book_id = e1.book_id AND e_del.event_type = 'deleted'),
+               '1970-01-01T00:00:00Z'
+           )
+        ) as created_at,
+        e1.occurred_at as updated_at,
         ROW_NUMBER() OVER (PARTITION BY e1.book_id ORDER BY e1.occurred_at DESC) as rn
     FROM book_events e1
     LEFT JOIN deleted_books d ON e1.book_id = d.book_id
@@ -103,6 +126,10 @@ current_lendings AS (
     FROM lending_events le
     INNER JOIN user_events ue ON ue.user_id = le.borrower_id AND ue.event_type = 'created'
     WHERE le.event_type = 'borrowed'
+        AND le.occurred_at > COALESCE(
+            (SELECT MAX(e2.occurred_at) FROM book_events e2 WHERE e2.book_id = le.book_id AND e2.event_type = 'deleted'),
+            '1970-01-01T00:00:00Z'
+        )
         AND NOT EXISTS (
             SELECT 1
             FROM lending_events returned
@@ -118,14 +145,15 @@ SELECT
     lb.publisher,
     lb.published_date,
     lb.thumbnail_url,
-    lb.occurred_at,
+    lb.created_at,
+    lb.updated_at,
     cl.borrower_id,
     cl.borrower_name,
     cl.borrowed_at
 FROM latest_books lb
 LEFT JOIN current_lendings cl ON lb.book_id = cl.book_id AND cl.rn = 1
 WHERE lb.rn = 1
-ORDER BY lb.occurred_at DESC
+ORDER BY lb.updated_at DESC
 LIMIT ? OFFSET ?;
 
 -- name: CountSearchBooks :one

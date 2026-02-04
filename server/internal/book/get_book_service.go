@@ -57,7 +57,11 @@ func GetBook(ctx context.Context, queries *Queries, input GetBookInput) (*GetBoo
 		}
 	}
 
-	createdAt, err := time.Parse(time.RFC3339, row.OccurredAt)
+	createdAtStr, ok := row.CreatedAt.(string)
+	if !ok || createdAtStr == "" {
+		return nil, ErrInvalidBookRow
+	}
+	createdAt, err := time.Parse(time.RFC3339, createdAtStr)
 	if err != nil {
 		return nil, ErrInvalidBookRow
 	}

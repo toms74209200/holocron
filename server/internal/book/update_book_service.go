@@ -113,7 +113,11 @@ func UpdateBook(ctx context.Context, queries *Queries, input UpdateBookInput) (*
 		return nil, err
 	}
 
-	createdAt, err := time.Parse(time.RFC3339, currentBook.OccurredAt)
+	createdAtStr, ok := currentBook.CreatedAt.(string)
+	if !ok || createdAtStr == "" {
+		return nil, ErrInvalidBookRow
+	}
+	createdAt, err := time.Parse(time.RFC3339, createdAtStr)
 	if err != nil {
 		return nil, ErrInvalidBookRow
 	}
