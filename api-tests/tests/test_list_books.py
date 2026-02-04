@@ -153,3 +153,41 @@ def test_get_books_with_invalid_offset_returns_400():
     )
 
     assert response.status_code == 400
+
+
+def test_get_books_after_borrow_returns_borrower_info():
+    token = create_user_and_get_token()
+
+    unique_title = random_string()
+    create_result = post_books.sync_detailed(
+        client=AuthenticatedClient(base_url=BASE_URL, token=token),
+        body=PostBooksBody(title=unique_title, authors=[random_string()]),
+    )
+    assert create_result.status_code == 201
+    created_book = create_result.parsed
+
+    borrow_response = requests.post(
+        f"{BASE_URL}/books/{created_book.id}/borrow",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert borrow_response.status_code == 200
+
+    response = requests.get(
+        f"{BASE_URL}/books",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+
+    borrowed_book = next(
+        (item for item in data["items"] if item["id"] == str(created_book.id)),
+        None
+    )
+    assert borrowed_book is not None
+    assert borrowed_book["status"] == "borrowed"
+    assert "borrower" in borrowed_book
+    assert borrowed_book["borrower"] is not None
+    assert UUID_PATTERN.match(borrowed_book["borrower"]["id"])
+    assert isinstance(borrowed_book["borrower"]["name"], str)
+    assert ISO8601_PATTERN.match(borrowed_book["borrower"]["borrowedAt"])

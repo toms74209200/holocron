@@ -151,3 +151,37 @@ def test_post_books_return_by_different_user_returns_403():
     data = response.json()
     assert data["code"] == "forbidden"
     assert "message" in data
+
+
+def test_get_book_after_return_shows_available_status():
+    token = create_user_and_get_token()
+
+    unique_title = random_string()
+    create_result = post_books.sync_detailed(
+        client=AuthenticatedClient(base_url=BASE_URL, token=token),
+        body=PostBooksBody(title=unique_title, authors=[random_string()]),
+    )
+    assert create_result.status_code == 201
+    created_book = create_result.parsed
+
+    borrow_response = requests.post(
+        f"{BASE_URL}/books/{created_book.id}/borrow",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert borrow_response.status_code == 200
+
+    return_response = requests.post(
+        f"{BASE_URL}/books/{created_book.id}/return",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert return_response.status_code == 200
+
+    response = requests.get(
+        f"{BASE_URL}/books/{created_book.id}",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "available"
+    assert data.get("borrower") is None

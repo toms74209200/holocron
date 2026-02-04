@@ -5,6 +5,7 @@ package books
 import (
 	"context"
 	"testing"
+	"time"
 
 	"holocron/internal/books/domain"
 )
@@ -153,8 +154,8 @@ func TestGetBookList_WithDeletedBook_ExcludesDeletedBook(t *testing.T) {
 
 	_, err := db.ExecContext(ctx, `
 		INSERT INTO book_events (event_id, book_id, event_type, occurred_at)
-		VALUES ('delete-event-1', ?, 'deleted', datetime('now'))
-	`, book1.ID)
+		VALUES ('delete-event-1', ?, 'deleted', ?)
+	`, book1.ID, book1.CreatedAt.Add(time.Second).UTC().Format(time.RFC3339))
 	if err != nil {
 		t.Fatalf("failed to insert delete event: %v", err)
 	}

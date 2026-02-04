@@ -84,3 +84,35 @@ def test_get_book_without_auth_returns_401():
     )
 
     assert response.status_code == 401
+
+
+def test_get_book_after_borrow_returns_borrowed_status():
+    token = create_user_and_get_token()
+
+    unique_title = random_string()
+    create_result = post_books.sync_detailed(
+        client=AuthenticatedClient(base_url=BASE_URL, token=token),
+        body=PostBooksBody(title=unique_title, authors=[random_string()]),
+    )
+    assert create_result.status_code == 201
+    created_book = create_result.parsed
+
+    borrow_response = requests.post(
+        f"{BASE_URL}/books/{created_book.id}/borrow",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert borrow_response.status_code == 200
+
+    response = requests.get(
+        f"{BASE_URL}/books/{created_book.id}",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "borrowed"
+    assert "borrower" in data
+    assert data["borrower"] is not None
+    assert UUID_PATTERN.match(data["borrower"]["id"])
+    assert isinstance(data["borrower"]["name"], str)
+    assert ISO8601_PATTERN.match(data["borrower"]["borrowedAt"])

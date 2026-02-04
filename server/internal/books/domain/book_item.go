@@ -8,6 +8,12 @@ import (
 
 var ErrInvalidBookRow = errors.New("invalid book row")
 
+type Borrower struct {
+	ID         string
+	Name       string
+	BorrowedAt time.Time
+}
+
 type BookItem struct {
 	ID            string
 	Code          *string
@@ -17,6 +23,7 @@ type BookItem struct {
 	PublishedDate *string
 	ThumbnailURL  *string
 	Status        string
+	Borrower      *Borrower
 	CreatedAt     time.Time
 }
 
@@ -28,7 +35,10 @@ func BookItemFromRow(
 	publisher *string,
 	publishedDate *string,
 	thumbnailURL *string,
-	occurredAt string,
+	createdAtRaw interface{},
+	borrowerID *string,
+	borrowerName *string,
+	borrowedAt *string,
 ) (*BookItem, error) {
 	var authors []string
 	if authorsJSON != "" {
@@ -37,9 +47,28 @@ func BookItemFromRow(
 		}
 	}
 
-	createdAt, err := time.Parse(time.RFC3339, occurredAt)
+	createdAtStr, ok := createdAtRaw.(string)
+	if !ok || createdAtStr == "" {
+		return nil, ErrInvalidBookRow
+	}
+	createdAt, err := time.Parse(time.RFC3339, createdAtStr)
 	if err != nil {
 		return nil, ErrInvalidBookRow
+	}
+
+	status := "available"
+	var borrower *Borrower
+	if borrowerID != nil && borrowerName != nil && borrowedAt != nil {
+		status = "borrowed"
+		borrowedAtTime, parseErr := time.Parse(time.RFC3339, *borrowedAt)
+		if parseErr != nil {
+			return nil, ErrInvalidBookRow
+		}
+		borrower = &Borrower{
+			ID:         *borrowerID,
+			Name:       *borrowerName,
+			BorrowedAt: borrowedAtTime,
+		}
 	}
 
 	return &BookItem{
@@ -50,7 +79,8 @@ func BookItemFromRow(
 		Publisher:     publisher,
 		PublishedDate: publishedDate,
 		ThumbnailURL:  thumbnailURL,
-		Status:        "available",
+		Status:        status,
+		Borrower:      borrower,
 		CreatedAt:     createdAt,
 	}, nil
 }
