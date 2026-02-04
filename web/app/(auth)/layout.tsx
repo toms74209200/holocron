@@ -11,7 +11,7 @@ const bizUDPGothic = BIZ_UDPGothic({
 });
 
 export const metadata: Metadata = {
-  title: "Holocron - 書庫",
+  title: "Holocron",
   description: "Knowledge archive for the galaxy",
 };
 

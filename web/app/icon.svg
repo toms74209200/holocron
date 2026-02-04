@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+  <style>
+    path, rect {
+      fill: #212121;
+    }
+    @media (prefers-color-scheme: dark) {
+      path, rect {
+        fill: #ffffff;
+      }
+    }
+  </style>
+  <g id="_レイヤー_1" data-name="レイヤー 1">
+    <path d="M15.27,49.3H3.82V.55h11.45v48.75ZM35.07.55h11.45v48.75h-11.45V.55Z"/>
+    <rect x="19.44" y="15.49" width="11.45" height="18.86"/>
+  </g>
+  <g id="_レイヤー_2" data-name="レイヤー 2">
+    <path d="M15.27,49.45H3.82V.7h11.45v48.75ZM35.07.7h11.45v48.75h-11.45V.7Z"/>
+    <rect x="19.44" y="15.65" width="11.45" height="18.86"/>
+  </g>
+</svg>

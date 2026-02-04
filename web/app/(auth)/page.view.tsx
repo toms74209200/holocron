@@ -1,8 +1,10 @@
 "use client";
 
 import { Icon } from "@iconify/react";
+import Image from "next/image";
 import Link from "next/link";
 import { BookInfoCard } from "./_components/BookInfoCard";
+import holocronLogo from "./_components/holocron-logo.svg";
 import type { Book } from "./_models/book";
 
 interface HomePageProps {
@@ -42,16 +44,12 @@ export const HomePage: React.FC<HomePageProps> = ({
             "py-4",
           ].join(" ")}
         >
-          <h1
-            className={[
-              "text-xl",
-              "font-bold",
-              "tracking-widest",
-              "text-slate-900",
-              "dark:text-slate-100",
-            ].join(" ")}
-          >
-            HOLOCRON
+          <h1>
+            <Image
+              src={holocronLogo}
+              alt="HOLOCRON"
+              className={["h-7", "w-auto", "dark:invert"].join(" ")}
+            />
           </h1>
           <Link
             href="/books/new"
