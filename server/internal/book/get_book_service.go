@@ -18,6 +18,12 @@ type GetBookInput struct {
 	BookID string
 }
 
+type Borrower struct {
+	ID         string
+	Name       string
+	BorrowedAt time.Time
+}
+
 type GetBookOutput struct {
 	ID            string
 	Code          *string
@@ -27,6 +33,7 @@ type GetBookOutput struct {
 	PublishedDate *string
 	ThumbnailURL  *string
 	Status        string
+	Borrower      *Borrower
 	CreatedAt     time.Time
 }
 
@@ -55,6 +62,27 @@ func GetBook(ctx context.Context, queries *Queries, input GetBookInput) (*GetBoo
 		return nil, ErrInvalidBookRow
 	}
 
+	// Check if the book is currently borrowed
+	status := "available"
+	var borrower *Borrower
+	borrowerInfo, err := queries.GetBookBorrowerInfo(ctx, input.BookID)
+	if err == nil {
+		// Book is borrowed
+		status = "borrowed"
+		borrowedAt, parseErr := time.Parse(time.RFC3339, borrowerInfo.BorrowedAt)
+		if parseErr != nil {
+			return nil, ErrInvalidBookRow
+		}
+		borrower = &Borrower{
+			ID:         borrowerInfo.BorrowerID,
+			Name:       borrowerInfo.BorrowerName,
+			BorrowedAt: borrowedAt,
+		}
+	} else if !errors.Is(err, sql.ErrNoRows) {
+		// Unexpected error (not "no rows" error)
+		return nil, err
+	}
+
 	return &GetBookOutput{
 		ID:            row.BookID,
 		Code:          nullStringToPtr(row.Code),
@@ -63,7 +91,8 @@ func GetBook(ctx context.Context, queries *Queries, input GetBookInput) (*GetBoo
 		Publisher:     nullStringToPtr(row.Publisher),
 		PublishedDate: nullStringToPtr(row.PublishedDate),
 		ThumbnailURL:  nullStringToPtr(row.ThumbnailUrl),
-		Status:        "available",
+		Status:        status,
+		Borrower:      borrower,
 		CreatedAt:     createdAt,
 	}, nil
 }

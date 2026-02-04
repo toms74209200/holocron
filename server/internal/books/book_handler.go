@@ -108,6 +108,13 @@ func (h *ListBooksHandler) ServeHTTP(w http.ResponseWriter, r *http.Request, par
 		if item.ThumbnailURL != nil {
 			m["thumbnailUrl"] = *item.ThumbnailURL
 		}
+		if item.Borrower != nil {
+			m["borrower"] = map[string]any{
+				"id":         item.Borrower.ID,
+				"name":       item.Borrower.Name,
+				"borrowedAt": item.Borrower.BorrowedAt.Format(time.RFC3339),
+			}
+		}
 		respItems = append(respItems, m)
 	}
 

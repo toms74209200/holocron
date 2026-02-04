@@ -62,6 +62,13 @@ func (h *GetBookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request, bookI
 	if output.ThumbnailURL != nil {
 		resp["thumbnailUrl"] = *output.ThumbnailURL
 	}
+	if output.Borrower != nil {
+		resp["borrower"] = map[string]any{
+			"id":         output.Borrower.ID,
+			"name":       output.Borrower.Name,
+			"borrowedAt": output.Borrower.BorrowedAt.Format(time.RFC3339),
+		}
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

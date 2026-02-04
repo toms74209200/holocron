@@ -45,6 +45,9 @@ func SearchBooksSource(queries *Queries) domain.BookListSource {
 				nullStringToPtr(row.PublishedDate),
 				nullStringToPtr(row.ThumbnailUrl),
 				row.OccurredAt,
+				nullStringToPtr(row.BorrowerID),
+				nullStringToPtr(row.BorrowerName),
+				nullStringToPtr(row.BorrowedAt),
 			)
 			if err != nil {
 				return nil, 0, err
