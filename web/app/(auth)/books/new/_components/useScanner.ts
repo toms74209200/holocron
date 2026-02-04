@@ -24,13 +24,10 @@ const ERROR_MESSAGES = {
   CAMERA_FAILED: "カメラの起動に失敗しました",
 } as const;
 
-export function useScanner(
-  elementId: string,
-  enabled: boolean,
-  onScan: (code: string) => void,
-) {
+export function useScanner(elementId: string, enabled: boolean) {
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const [state, setState] = useState<ScannerState>({ status: "idle" });
+  const [scannedCode, setScannedCode] = useState<string | null>(null);
 
   useEffect(() => {
     if (state.status !== "cooldown") {
@@ -38,6 +35,7 @@ export function useScanner(
     }
 
     const timer = setTimeout(() => {
+      setScannedCode(null);
       setState({ status: "scanning" });
     }, COOLDOWN_MS);
 
@@ -91,8 +89,7 @@ export function useScanner(
                 return prev;
               }
 
-              onScan(decodedText);
-
+              setScannedCode(decodedText);
               return { status: "cooldown" };
             });
           },
@@ -131,7 +128,7 @@ export function useScanner(
         scannerRef.current = null;
       }
     };
-  }, [elementId, enabled, onScan]);
+  }, [elementId, enabled]);
 
-  return state;
+  return { state, scannedCode };
 }

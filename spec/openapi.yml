@@ -74,7 +74,7 @@ paths:
               example:
                 id: "550e8400-e29b-41d4-a716-446655440000"
                 name: "ゲスト"
-                customToken: "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJwcm92aWRlcl9pZCI6ImFub255bW91cyIsImF1dGhfdGltZSI6MTc2OTgzMzIzMywidXNlcl9pZCI6InE3U3NEamo4R0JGUnZrdmt0M2s4dlRWb1NDN2wiLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7fSwic2lnbl9pbl9wcm92aWRlciI6ImFub255bW91cyJ9LCJpYXQiOjE3Njk4MzMyMzMsImV4cCI6MTc2OTgzNjgzMywiYXVkIjoiaG9sb2Nyb24iLCJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vaG9sb2Nyb24iLCJzdWIiOiJxN1NzRGpqOEdCRlJ2a3ZrdDNrOHZUVm9TQzdsIn0."
+                customToken: "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJpc3MiOiJmaXJlYmFzZS1hZG1pbnNka0Bob2xvY3Jvbi5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIsInN1YiI6ImZpcmViYXNlLWFkbWluc2RrQGhvbG9jcm9uLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDAiLCJpYXQiOjE3Njk4MzMyMzMsImV4cCI6MTc2OTgzNjgzM30."
                 createdAt: "2024-01-15T10:30:00Z"
                 updatedAt: "2024-01-15T10:30:00Z"
         '400':

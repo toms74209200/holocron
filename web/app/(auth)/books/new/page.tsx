@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useId, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 import { useAuth } from "@/app/_components/AuthProvider";
 import { fetchClient } from "@/app/_lib/query";
 import { parseIsbn } from "../../_models/isbn";
@@ -10,10 +10,11 @@ import { NewBookPage, type RegisteredBook } from "./page.view";
 
 type InputMode = "scanner" | "manual";
 
-type RegistrationState =
-  | { status: "idle"; lastBook?: RegisteredBook }
-  | { status: "registering"; lastBook?: RegisteredBook }
-  | { status: "error"; message: string; lastBook?: RegisteredBook };
+type State =
+  | { type: "idle"; lastBook?: RegisteredBook }
+  | { type: "registering" }
+  | { type: "success"; book: RegisteredBook }
+  | { type: "error"; message: string };
 
 export default function NewBook() {
   const authState = useAuth();
@@ -22,22 +23,26 @@ export default function NewBook() {
 
   const [code, setCode] = useState("");
   const [inputMode, setInputMode] = useState<InputMode>("scanner");
-  const [registrationState, setRegistrationState] = useState<RegistrationState>(
-    { status: "idle" },
-  );
+  const [state, setState] = useState<State>({ type: "idle" });
 
   const user = authState.status === "authenticated" ? authState.user : null;
 
-  const registerBook = useCallback(
-    async (isbn: string) => {
+  const handleBookRegistration = useCallback(
+    async (rawCode: string) => {
       if (!user) {
         return;
       }
+      if (state.type !== "idle") {
+        return;
+      }
 
-      setRegistrationState((prev) => ({
-        status: "registering",
-        lastBook: prev.status !== "error" ? prev.lastBook : undefined,
-      }));
+      const isbn = parseIsbn(rawCode);
+      if (!isbn) {
+        setState({ type: "error", message: "ISBNの形式が正しくありません" });
+        return;
+      }
+
+      setState({ type: "registering" });
 
       const token = await user.getIdToken();
       const { data, error: apiError } = await fetchClient.POST("/books/code", {
@@ -46,56 +51,55 @@ export default function NewBook() {
       });
 
       if (apiError || !data) {
-        setRegistrationState((prev) => ({
-          status: "error",
+        setState({
+          type: "error",
           message: apiError?.message ?? "書籍登録に失敗しました",
-          lastBook: prev.status !== "error" ? prev.lastBook : undefined,
-        }));
-      } else {
-        queryClient.invalidateQueries({ queryKey: ["books"] });
-        setRegistrationState({ status: "idle", lastBook: data });
-      }
-    },
-    [user, queryClient],
-  );
-
-  const handleScan = useCallback(
-    (decodedText: string) => {
-      const isbn = parseIsbn(decodedText);
-      if (!isbn) {
-        setRegistrationState({
-          status: "error",
-          message: "読み取ったコードがISBNの形式ではありません",
         });
       } else {
-        registerBook(isbn);
+        queryClient.invalidateQueries({ queryKey: ["books"] });
+        setState({ type: "idle", lastBook: data });
       }
     },
-    [registerBook],
+    [user, queryClient, state.type],
   );
 
-  const scannerState = useScanner(
+  const { state: scannerState, scannedCode } = useScanner(
     elementId,
     inputMode === "scanner" && !!user,
-    handleScan,
   );
+
+  const [lastProcessedCode, setLastProcessedCode] = useState<string | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (
+      scannedCode &&
+      scannedCode !== lastProcessedCode &&
+      state.type === "idle"
+    ) {
+      setLastProcessedCode(scannedCode);
+      handleBookRegistration(scannedCode);
+    }
+  }, [scannedCode, lastProcessedCode, state.type, handleBookRegistration]);
+
+  useEffect(() => {
+    if (!scannedCode) {
+      setLastProcessedCode(null);
+    }
+  }, [scannedCode]);
 
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
-    const isbn = parseIsbn(code);
-    if (!isbn) {
-      setRegistrationState({
-        status: "error",
-        message: "ISBNの形式が正しくありません",
-      });
-      return;
-    }
-    await registerBook(isbn);
+    await handleBookRegistration(code);
   };
 
   const handleRetry = () => {
     setCode("");
-    setRegistrationState({ status: "idle" });
+    setState((prev) => ({
+      type: "idle",
+      lastBook: prev.type === "success" ? prev.book : undefined,
+    }));
   };
 
   if (!user) {
@@ -113,6 +117,15 @@ export default function NewBook() {
       />
     );
   }
+
+  const registrationState =
+    state.type === "idle"
+      ? { status: "idle" as const, lastBook: state.lastBook }
+      : state.type === "registering"
+        ? { status: "registering" as const }
+        : state.type === "success"
+          ? { status: "idle" as const, lastBook: state.book }
+          : { status: "error" as const, message: state.message };
 
   return (
     <NewBookPage
