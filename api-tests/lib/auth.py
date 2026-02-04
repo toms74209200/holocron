@@ -5,7 +5,7 @@ import requests
 from lib.api_config import BASE_URL
 
 FIREBASE_API_KEY = os.getenv("FIREBASE_API_KEY", "fake-api-key")
-FIREBASE_AUTH_EMULATOR_HOST = os.getenv("FIREBASE_AUTH_EMULATOR_HOST", "firebase:9099")
+FIREBASE_AUTH_EMULATOR_HOST = os.getenv("FIREBASE_AUTH_EMULATOR_HOST", "firebase:19099")
 FIREBASE_AUTH_URL = f"http://{FIREBASE_AUTH_EMULATOR_HOST}/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken"
 
 
