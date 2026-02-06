@@ -152,6 +152,55 @@ func (h *UpdateBookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request, bo
 	_ = json.NewEncoder(w).Encode(resp)
 }
 
+type DeleteBookHandler struct {
+	queries *Queries
+}
+
+func NewDeleteBookHandler(queries *Queries) *DeleteBookHandler {
+	return &DeleteBookHandler{
+		queries: queries,
+	}
+}
+
+func (h *DeleteBookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request, bookId openapi_types.UUID) {
+	var req struct {
+		Reason string  `json:"reason"`
+		Memo   *string `json:"memo"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_request", "invalid request body")
+		return
+	}
+
+	if req.Reason == "" {
+		writeError(w, http.StatusBadRequest, "invalid_request", "reason is required")
+		return
+	}
+
+	err := DeleteBook(r.Context(), h.queries, DeleteBookInput{
+		BookID: bookId.String(),
+		Reason: req.Reason,
+		Memo:   req.Memo,
+	})
+
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrBookNotFound):
+			writeError(w, http.StatusNotFound, "not_found", "book not found")
+		case errors.Is(err, ErrBookBorrowed):
+			writeError(w, http.StatusConflict, "conflict", "cannot delete borrowed book")
+		case errors.Is(err, ErrInvalidDeleteReason):
+			writeError(w, http.StatusBadRequest, "invalid_request", "invalid delete reason")
+		default:
+			writeError(w, http.StatusInternalServerError, "internal_error", "internal server error")
+		}
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func writeError(w http.ResponseWriter, status int, code, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
