@@ -8,6 +8,8 @@ CREATE TABLE book_events (
     publisher TEXT,
     published_date TEXT,
     thumbnail_url TEXT,
+    delete_reason TEXT,
+    delete_memo TEXT,
     occurred_at TEXT NOT NULL
 );
 
