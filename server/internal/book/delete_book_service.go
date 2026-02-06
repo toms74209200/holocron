@@ -28,15 +28,13 @@ func DeleteBook(ctx context.Context, queries *Queries, input DeleteBookInput) er
 		return ErrInvalidDeleteReason
 	}
 
-	currentBook, err := queries.GetBookByBookId(ctx, input.BookID)
+	_, err = queries.GetBookByBookId(ctx, input.BookID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ErrBookNotFound
 		}
 		return err
 	}
-
-	_ = currentBook
 
 	_, err = queries.GetBookBorrowerInfo(ctx, input.BookID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {

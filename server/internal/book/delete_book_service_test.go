@@ -363,3 +363,51 @@ func TestDeleteBook_WithInvalidReason_ReturnsInvalidDeleteReasonError(t *testing
 		t.Errorf("expected ErrInvalidDeleteReason, got %v", err)
 	}
 }
+
+// When DeleteBook with already deleted book then returns not found error
+func TestDeleteBook_WithAlreadyDeletedBook_ReturnsNotFoundError(t *testing.T) {
+	db := setupDeleteTestDB(t)
+	queries := New(db)
+	ctx := context.Background()
+
+	bookID := uuid.New().String()
+	title := uuid.New().String()
+	authors := fmt.Sprintf(`["%s"]`, uuid.New().String())
+	occurredAt := time.Now().Add(-time.Duration(rand.Intn(720)+1) * time.Hour).Format(time.RFC3339)
+	_, err := db.ExecContext(ctx, `
+		INSERT INTO book_events (event_id, book_id, event_type, title, authors, occurred_at)
+		VALUES (?, ?, 'created', ?, ?, ?)
+	`, uuid.New().String(), bookID, title, authors, occurredAt)
+	if err != nil {
+		t.Fatalf("failed to insert book: %v", err)
+	}
+
+	err = DeleteBook(ctx, queries, DeleteBookInput{
+		BookID: bookID,
+		Reason: "disposal",
+		Memo:   nil,
+	})
+	if err != nil {
+		t.Fatalf("first deletion failed: %v", err)
+	}
+
+	err = DeleteBook(ctx, queries, DeleteBookInput{
+		BookID: bookID,
+		Reason: "disposal",
+		Memo:   nil,
+	})
+
+	if !errors.Is(err, ErrBookNotFound) {
+		t.Errorf("expected ErrBookNotFound when deleting already deleted book, got %v", err)
+	}
+
+	var eventCount int
+	err = db.QueryRowContext(ctx, `SELECT COUNT(*) FROM book_events WHERE book_id = ? AND event_type = 'deleted'`, bookID).Scan(&eventCount)
+	if err != nil {
+		t.Fatalf("failed to count events: %v", err)
+	}
+	expectedEventCount := 1
+	if eventCount != expectedEventCount {
+		t.Errorf("expected %d delete event, got %d", expectedEventCount, eventCount)
+	}
+}
