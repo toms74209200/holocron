@@ -827,6 +827,104 @@ paths:
                 code: "NOT_FOUND"
                 message: "指定された書籍が見つかりません"
 
+    delete:
+      summary: 書籍削除
+      description: 指定した書籍を削除する。貸出中の書籍は削除できない。
+      operationId: deleteBook
+      tags:
+        - Books
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          description: 書籍ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  type: string
+                  enum:
+                    - transfer
+                    - disposal
+                    - lost
+                    - other
+                  description: |
+                    削除理由
+                    - transfer: 譲渡（他の人に譲った）
+                    - disposal: 破棄（廃棄処分した）
+                    - lost: 紛失（紛失した）
+                    - other: その他（上記以外の理由）
+                memo:
+                  type: string
+                  maxLength: 500
+                  description: 削除メモ（詳細な理由や備考）
+            example:
+              reason: "transfer"
+              memo: "友人に譲りました"
+      responses:
+        '204':
+          description: 削除成功
+        '401':
+          description: 認証が必要
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+              example:
+                code: "UNAUTHORIZED"
+                message: "認証が必要です"
+        '404':
+          description: 書籍が見つからない
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+              example:
+                code: "NOT_FOUND"
+                message: "指定された書籍が見つかりません"
+        '409':
+          description: 貸出中の書籍は削除できない
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+              example:
+                code: "CONFLICT"
+                message: "貸出中の書籍は削除できません"
+
   /books/{bookId}/borrow:
     post:
       summary: 書籍を借りる
