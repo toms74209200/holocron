@@ -30,6 +30,7 @@ type server struct {
 	listBooksHandler        *books.ListBooksHandler
 	getBookHandler          *book.GetBookHandler
 	updateBookHandler       *book.UpdateBookHandler
+	deleteBookHandler       *book.DeleteBookHandler
 	borrowBookHandler       *lending.BorrowBookHandler
 	returnBookHandler       *lending.ReturnBookHandler
 }
@@ -48,6 +49,9 @@ func (s *server) GetBook(w http.ResponseWriter, r *http.Request, bookId openapi_
 }
 func (s *server) PostBooksBookId(w http.ResponseWriter, r *http.Request, bookId openapi_types.UUID) {
 	s.updateBookHandler.ServeHTTP(w, r, bookId)
+}
+func (s *server) DeleteBook(w http.ResponseWriter, r *http.Request, bookId openapi_types.UUID) {
+	s.deleteBookHandler.ServeHTTP(w, r, bookId)
 }
 func (s *server) PostBooksBorrow(w http.ResponseWriter, r *http.Request, bookId openapi_types.UUID) {
 	s.borrowBookHandler.ServeHTTP(w, r)
@@ -81,6 +85,8 @@ func initDB(database *sql.DB) error {
 		publisher TEXT,
 		published_date TEXT,
 		thumbnail_url TEXT,
+		delete_reason TEXT,
+		delete_memo TEXT,
 		occurred_at TEXT NOT NULL
 	);
 	CREATE INDEX IF NOT EXISTS idx_book_events_book_id ON book_events(book_id);
@@ -155,6 +161,7 @@ func main() {
 		listBooksHandler:        books.NewListBooksHandler(booksQueries),
 		getBookHandler:          book.NewGetBookHandler(bookQueries),
 		updateBookHandler:       book.NewUpdateBookHandler(bookQueries),
+		deleteBookHandler:       book.NewDeleteBookHandler(bookQueries),
 		borrowBookHandler:       lending.NewBorrowBookHandler(borrowBookService),
 		returnBookHandler:       lending.NewReturnBookHandler(returnBookService, bookQueries),
 	}

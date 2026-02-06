@@ -63,3 +63,7 @@ WHERE le.book_id = ?
     )
 ORDER BY le.occurred_at DESC
 LIMIT 1;
+
+-- name: InsertBookDeleteEvent :exec
+INSERT INTO book_events (event_id, book_id, event_type, delete_reason, delete_memo, occurred_at)
+VALUES (?, ?, 'deleted', ?, ?, ?);
