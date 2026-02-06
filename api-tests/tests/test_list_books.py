@@ -181,8 +181,7 @@ def test_get_books_after_borrow_returns_borrower_info():
     data = response.json()
 
     borrowed_book = next(
-        (item for item in data["items"] if item["id"] == str(created_book.id)),
-        None
+        (item for item in data["items"] if item["id"] == str(created_book.id)), None
     )
     assert borrowed_book is not None
     assert borrowed_book["status"] == "borrowed"

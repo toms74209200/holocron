@@ -104,7 +104,9 @@ def test_post_books_borrow_same_user_extends_due_date():
     )
     assert first_borrow_response.status_code == 200
     first_data = first_borrow_response.json()
-    first_due_date = datetime.fromisoformat(first_data["dueDate"].replace("Z", "+00:00"))
+    first_due_date = datetime.fromisoformat(
+        first_data["dueDate"].replace("Z", "+00:00")
+    )
 
     response = requests.post(
         f"{BASE_URL}/books/{created_book.id}/borrow",
