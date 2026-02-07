@@ -12,6 +12,8 @@ interface HomePageProps {
   query: string;
   onChangeQuery: (query: string) => void;
   loading?: boolean;
+  observerTarget: React.RefObject<HTMLDivElement | null>;
+  isFetchingNextPage: boolean;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({
@@ -19,6 +21,8 @@ export const HomePage: React.FC<HomePageProps> = ({
   query,
   onChangeQuery,
   loading,
+  observerTarget,
+  isFetchingNextPage,
 }) => {
   return (
     <div
@@ -168,36 +172,60 @@ export const HomePage: React.FC<HomePageProps> = ({
             </p>
           </div>
         ) : (
-          <ul className={["space-y-3"].join(" ")}>
-            {books.map((book) => (
-              <li key={book.id}>
-                <Link
-                  href={`/book?id=${book.id}`}
+          <>
+            <ul className={["space-y-3"].join(" ")}>
+              {books.map((book) => (
+                <li key={book.id}>
+                  <Link
+                    href={`/book?id=${book.id}`}
+                    className={[
+                      "block",
+                      "rounded-xl",
+                      "border",
+                      "border-slate-200",
+                      "bg-white",
+                      "p-4",
+                      "transition-colors",
+                      "hover:border-slate-300",
+                      "dark:border-slate-800",
+                      "dark:bg-slate-900",
+                      "dark:hover:border-slate-700",
+                    ].join(" ")}
+                  >
+                    <BookInfoCard
+                      title={book.title}
+                      authors={book.authors}
+                      status={book.status}
+                      borrower={book.borrower}
+                      thumbnailUrl={book.thumbnailUrl}
+                    />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <div ref={observerTarget} className={["py-4"].join(" ")}>
+              {isFetchingNextPage && (
+                <div
                   className={[
-                    "block",
-                    "rounded-xl",
-                    "border",
-                    "border-slate-200",
-                    "bg-white",
-                    "p-4",
-                    "transition-colors",
-                    "hover:border-slate-300",
-                    "dark:border-slate-800",
-                    "dark:bg-slate-900",
-                    "dark:hover:border-slate-700",
+                    "flex",
+                    "items-center",
+                    "justify-center",
+                    "py-8",
                   ].join(" ")}
                 >
-                  <BookInfoCard
-                    title={book.title}
-                    authors={book.authors}
-                    status={book.status}
-                    borrower={book.borrower}
-                    thumbnailUrl={book.thumbnailUrl}
-                  />
-                </Link>
-              </li>
-            ))}
-          </ul>
+                  <p
+                    className={[
+                      "text-sm",
+                      "text-slate-500",
+                      "dark:text-slate-400",
+                    ].join(" ")}
+                  >
+                    読み込み中...
+                  </p>
+                </div>
+              )}
+            </div>
+          </>
         )}
       </main>
     </div>
