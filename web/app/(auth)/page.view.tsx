@@ -14,6 +14,9 @@ interface HomePageProps {
   loading?: boolean;
   observerTarget: React.RefObject<HTMLDivElement | null>;
   isFetchingNextPage: boolean;
+  showScrollTop?: boolean;
+  onScrollToTop?: () => void;
+  isScrolling?: boolean;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({
@@ -23,6 +26,9 @@ export const HomePage: React.FC<HomePageProps> = ({
   loading,
   observerTarget,
   isFetchingNextPage,
+  showScrollTop = false,
+  onScrollToTop,
+  isScrolling = false,
 }) => {
   return (
     <div
@@ -228,6 +234,36 @@ export const HomePage: React.FC<HomePageProps> = ({
           </>
         )}
       </main>
+
+      {showScrollTop && onScrollToTop && (
+        <button
+          type="button"
+          onClick={onScrollToTop}
+          className={[
+            "fixed",
+            "bottom-6",
+            "right-6",
+            "flex",
+            "size-12",
+            "items-center",
+            "justify-center",
+            "rounded-full",
+            "bg-sky-700",
+            "text-white",
+            "shadow-lg",
+            "transition-all",
+            "duration-150",
+            "hover:bg-sky-800",
+            "hover:shadow-xl",
+            "dark:bg-sky-600",
+            "dark:hover:bg-sky-700",
+            isScrolling ? "opacity-25" : "opacity-100",
+          ].join(" ")}
+          aria-label="トップに戻る"
+        >
+          <Icon icon="material-symbols:arrow-upward" className="size-6" />
+        </button>
+      )}
     </div>
   );
 };

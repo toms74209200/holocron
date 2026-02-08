@@ -20,6 +20,11 @@ function HomeContent({
 }) {
   const authState = useAuth();
   const observerTarget = useRef<HTMLDivElement>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollTimeoutRef = useRef<ReturnType<typeof window.setTimeout> | null>(
+    null,
+  );
 
   if (authState.status !== "authenticated") {
     throw new Error("HomeContent requires authenticated user");
@@ -81,6 +86,37 @@ function HomeContent({
     };
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const viewportHeight = window.innerHeight;
+      setShowScrollTop(scrollY > viewportHeight);
+
+      setIsScrolling(true);
+
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+
+      scrollTimeoutRef.current = setTimeout(() => {
+        setIsScrolling(false);
+      }, 1000);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <HomePage
       books={books}
@@ -89,6 +125,9 @@ function HomeContent({
       loading={isLoading}
       observerTarget={observerTarget}
       isFetchingNextPage={isFetchingNextPage}
+      showScrollTop={showScrollTop}
+      onScrollToTop={scrollToTop}
+      isScrolling={isScrolling}
     />
   );
 }
