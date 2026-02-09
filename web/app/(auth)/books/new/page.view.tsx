@@ -15,32 +15,40 @@ export type RegisteredBook = {
 
 type InputMode = "scanner" | "manual";
 
+type BookDetailForm = {
+  title: string;
+  authors: Array<{ id: string; value: string }>;
+  publisher: string;
+  publishedDate: string;
+  thumbnailUrl: string;
+};
+
 type RegistrationState =
   | { status: "idle"; lastBook?: RegisteredBook }
   | { status: "registering"; lastBook?: RegisteredBook }
   | { status: "error"; message: string; lastBook?: RegisteredBook };
 
 interface NewBookPageProps {
-  code: string;
   registrationState: RegistrationState;
   scannerState: ScannerState;
   inputMode: InputMode;
+  bookForm: BookDetailForm;
   scannerId: string;
-  onChangeCode: (code: string) => void;
   onChangeInputMode: (mode: InputMode) => void;
-  onSubmit: (e: { preventDefault: () => void }) => void;
+  onChangeBookForm: (form: BookDetailForm) => void;
+  onManualSubmit: (e: { preventDefault: () => void }) => void;
   onRetry: () => void;
 }
 
 export const NewBookPage: FC<NewBookPageProps> = ({
-  code,
   registrationState,
   scannerState,
   inputMode,
+  bookForm,
   scannerId,
-  onChangeCode,
   onChangeInputMode,
-  onSubmit,
+  onChangeBookForm,
+  onManualSubmit,
   onRetry,
 }) => {
   return (
@@ -114,15 +122,15 @@ export const NewBookPage: FC<NewBookPageProps> = ({
           {registrationState.status === "error" ? (
             <ErrorView message={registrationState.message} onRetry={onRetry} />
           ) : (
-            <ScanningView
-              code={code}
+            <ManualInputView
               inputMode={inputMode}
+              bookForm={bookForm}
               scannerId={scannerId}
               scannerState={scannerState}
               isRegistering={registrationState.status === "registering"}
-              onChangeCode={onChangeCode}
               onChangeInputMode={onChangeInputMode}
-              onSubmit={onSubmit}
+              onChangeBookForm={onChangeBookForm}
+              onManualSubmit={onManualSubmit}
             />
           )}
         </div>
@@ -181,26 +189,26 @@ const ErrorView: FC<{
   </div>
 );
 
-interface ScanningViewProps {
-  code: string;
+interface ManualInputViewProps {
   inputMode: InputMode;
+  bookForm: BookDetailForm;
   scannerId: string;
   scannerState: ScannerState;
   isRegistering: boolean;
-  onChangeCode: (code: string) => void;
   onChangeInputMode: (mode: InputMode) => void;
-  onSubmit: (e: { preventDefault: () => void }) => void;
+  onChangeBookForm: (form: BookDetailForm) => void;
+  onManualSubmit: (e: { preventDefault: () => void }) => void;
 }
 
-const ScanningView: FC<ScanningViewProps> = ({
-  code,
+const ManualInputView: FC<ManualInputViewProps> = ({
   inputMode,
+  bookForm,
   scannerId,
   scannerState,
   isRegistering,
-  onChangeCode,
   onChangeInputMode,
-  onSubmit,
+  onChangeBookForm,
+  onManualSubmit,
 }) => (
   <>
     <div className={["mb-4", "flex", "gap-2"].join(" ")}>
@@ -336,95 +344,275 @@ const ScanningView: FC<ScanningViewProps> = ({
         )}
       </div>
     ) : (
-      <form onSubmit={onSubmit} className={["space-y-4"].join(" ")}>
-        <div>
-          <label
-            htmlFor="code"
-            className={[
-              "mb-2",
-              "block",
-              "text-sm",
-              "font-medium",
-              "text-slate-700",
-              "dark:text-slate-300",
-            ].join(" ")}
-          >
-            ISBN
-          </label>
-          <input
-            id="code"
-            type="text"
-            value={code}
-            onChange={(e) => onChangeCode(e.target.value)}
-            placeholder="978-4-87311-752-2"
-            disabled={isRegistering}
-            className={[
-              "w-full",
-              "rounded-lg",
-              "border",
-              "border-slate-200",
-              "bg-white",
-              "px-4",
-              "py-3",
-              "text-slate-900",
-              "placeholder:text-slate-400",
-              "focus:border-sky-600",
-              "focus:outline-none",
-              "focus:ring-1",
-              "focus:ring-sky-600",
-              "dark:border-slate-700",
-              "dark:bg-slate-800",
-              "dark:text-slate-100",
-              "dark:placeholder:text-slate-500",
-              "dark:focus:border-sky-500",
-              "dark:focus:ring-sky-500",
-              "disabled:opacity-50",
-            ].join(" ")}
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={!code.trim() || isRegistering}
-          className={[
-            "flex",
-            "w-full",
-            "items-center",
-            "justify-center",
-            "gap-1",
-            "rounded-lg",
-            "bg-sky-700",
-            "px-4",
-            "py-3",
-            "font-semibold",
-            "text-white",
-            "transition-colors",
-            "hover:bg-sky-800",
-            "disabled:cursor-not-allowed",
-            "disabled:bg-slate-300",
-            "disabled:text-slate-500",
-            "dark:bg-sky-600",
-            "dark:hover:bg-sky-700",
-            "dark:disabled:bg-slate-700",
-            "dark:disabled:text-slate-400",
-          ].join(" ")}
-        >
-          {isRegistering ? (
-            <>
-              <Icon
-                icon="material-symbols:progress-activity"
-                className="h-5 w-5 animate-spin"
-              />
-              登録中...
-            </>
-          ) : (
-            <>
-              <Icon icon="material-symbols:add" className="h-5 w-5" />
-              登録する
-            </>
-          )}
-        </button>
-      </form>
+      <DetailInputForm
+        bookForm={bookForm}
+        isRegistering={isRegistering}
+        onChangeBookForm={onChangeBookForm}
+        onSubmit={onManualSubmit}
+      />
     )}
   </>
 );
+
+interface DetailInputFormProps {
+  bookForm: BookDetailForm;
+  isRegistering: boolean;
+  onChangeBookForm: (form: BookDetailForm) => void;
+  onSubmit: (e: { preventDefault: () => void }) => void;
+}
+
+const DetailInputForm: FC<DetailInputFormProps> = ({
+  bookForm,
+  isRegistering,
+  onChangeBookForm,
+  onSubmit,
+}) => {
+  const labelClasses = [
+    "mb-2",
+    "block",
+    "text-sm",
+    "font-medium",
+    "text-slate-700",
+    "dark:text-slate-300",
+  ].join(" ");
+
+  const inputClasses = [
+    "w-full",
+    "rounded-lg",
+    "border",
+    "border-slate-200",
+    "bg-white",
+    "px-4",
+    "py-3",
+    "text-slate-900",
+    "placeholder:text-slate-400",
+    "focus:border-sky-600",
+    "focus:outline-none",
+    "focus:ring-1",
+    "focus:ring-sky-600",
+    "dark:border-slate-700",
+    "dark:bg-slate-800",
+    "dark:text-slate-100",
+    "dark:placeholder:text-slate-500",
+    "dark:focus:border-sky-500",
+    "dark:focus:ring-sky-500",
+    "disabled:opacity-50",
+  ].join(" ");
+
+  const handleAuthorChange = (index: number, value: string) => {
+    const newAuthors = [...bookForm.authors];
+    newAuthors[index] = { ...newAuthors[index], value };
+    onChangeBookForm({ ...bookForm, authors: newAuthors });
+  };
+
+  const handleAddAuthor = () => {
+    onChangeBookForm({
+      ...bookForm,
+      authors: [...bookForm.authors, { id: crypto.randomUUID(), value: "" }],
+    });
+  };
+
+  const handleRemoveAuthor = (index: number) => {
+    if (bookForm.authors.length === 1) {
+      return;
+    }
+    onChangeBookForm({
+      ...bookForm,
+      authors: bookForm.authors.filter((_, i) => i !== index),
+    });
+  };
+
+  const isFormValid =
+    bookForm.title.trim() && bookForm.authors.some((a) => a.value.trim());
+
+  return (
+    <form onSubmit={onSubmit} className={["space-y-4"].join(" ")}>
+      <div>
+        <label htmlFor="title" className={labelClasses}>
+          タイトル <span className="text-red-500">*</span>
+        </label>
+        <input
+          id="title"
+          type="text"
+          value={bookForm.title}
+          onChange={(e) =>
+            onChangeBookForm({ ...bookForm, title: e.target.value })
+          }
+          placeholder="詳解システム・パフォーマンス"
+          disabled={isRegistering}
+          className={inputClasses}
+        />
+      </div>
+
+      <div>
+        <div className={labelClasses}>
+          著者 <span className="text-red-500">*</span>
+        </div>
+        <div className={["space-y-2"].join(" ")}>
+          {bookForm.authors.map((author, index) => (
+            <div key={author.id} className={["flex", "gap-2"].join(" ")}>
+              <input
+                type="text"
+                value={author.value}
+                onChange={(e) => handleAuthorChange(index, e.target.value)}
+                placeholder={`著者${index + 1}`}
+                disabled={isRegistering}
+                className={inputClasses}
+              />
+              {bookForm.authors.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => handleRemoveAuthor(index)}
+                  disabled={isRegistering}
+                  className={[
+                    "flex",
+                    "items-center",
+                    "justify-center",
+                    "rounded-lg",
+                    "border",
+                    "border-slate-200",
+                    "bg-white",
+                    "px-3",
+                    "text-slate-600",
+                    "transition-colors",
+                    "hover:bg-slate-100",
+                    "dark:border-slate-700",
+                    "dark:bg-slate-800",
+                    "dark:text-slate-400",
+                    "dark:hover:bg-slate-700",
+                    "disabled:opacity-50",
+                  ].join(" ")}
+                >
+                  <Icon icon="material-symbols:close" className="size-5" />
+                </button>
+              )}
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={handleAddAuthor}
+            disabled={isRegistering}
+            className={[
+              "flex",
+              "w-full",
+              "items-center",
+              "justify-center",
+              "gap-1",
+              "rounded-lg",
+              "border",
+              "border-dashed",
+              "border-slate-300",
+              "bg-slate-50",
+              "px-4",
+              "py-2",
+              "text-sm",
+              "text-slate-600",
+              "transition-colors",
+              "hover:bg-slate-100",
+              "dark:border-slate-700",
+              "dark:bg-slate-900",
+              "dark:text-slate-400",
+              "dark:hover:bg-slate-800",
+              "disabled:opacity-50",
+            ].join(" ")}
+          >
+            <Icon icon="material-symbols:add" className="size-4" />
+            著者を追加
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="publisher" className={labelClasses}>
+          出版社
+        </label>
+        <input
+          id="publisher"
+          type="text"
+          value={bookForm.publisher}
+          onChange={(e) =>
+            onChangeBookForm({ ...bookForm, publisher: e.target.value })
+          }
+          placeholder="オライリージャパン"
+          disabled={isRegistering}
+          className={inputClasses}
+        />
+      </div>
+
+      <div>
+        <label htmlFor="publishedDate" className={labelClasses}>
+          出版日
+        </label>
+        <input
+          id="publishedDate"
+          type="date"
+          value={bookForm.publishedDate}
+          onChange={(e) =>
+            onChangeBookForm({ ...bookForm, publishedDate: e.target.value })
+          }
+          disabled={isRegistering}
+          className={inputClasses}
+        />
+      </div>
+
+      <div>
+        <label htmlFor="thumbnailUrl" className={labelClasses}>
+          サムネイルURL
+        </label>
+        <input
+          id="thumbnailUrl"
+          type="url"
+          value={bookForm.thumbnailUrl}
+          onChange={(e) =>
+            onChangeBookForm({ ...bookForm, thumbnailUrl: e.target.value })
+          }
+          placeholder="https://example.com/book-cover.jpg"
+          disabled={isRegistering}
+          className={inputClasses}
+        />
+      </div>
+
+      <button
+        type="submit"
+        disabled={!isFormValid || isRegistering}
+        className={[
+          "flex",
+          "w-full",
+          "items-center",
+          "justify-center",
+          "gap-1",
+          "rounded-lg",
+          "bg-sky-700",
+          "px-4",
+          "py-3",
+          "font-semibold",
+          "text-white",
+          "transition-colors",
+          "hover:bg-sky-800",
+          "disabled:cursor-not-allowed",
+          "disabled:bg-slate-300",
+          "disabled:text-slate-500",
+          "dark:bg-sky-600",
+          "dark:hover:bg-sky-700",
+          "dark:disabled:bg-slate-700",
+          "dark:disabled:text-slate-400",
+        ].join(" ")}
+      >
+        {isRegistering ? (
+          <>
+            <Icon
+              icon="material-symbols:progress-activity"
+              className="h-5 w-5 animate-spin"
+            />
+            登録中...
+          </>
+        ) : (
+          <>
+            <Icon icon="material-symbols:add" className="h-5 w-5" />
+            登録する
+          </>
+        )}
+      </button>
+    </form>
+  );
+};
