@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useId, useState } from "react";
 import { useAuth } from "@/app/_components/AuthProvider";
 import { fetchClient } from "@/app/_lib/query";
+import { parseBookForm } from "../../_models/bookForm";
 import { parseIsbn } from "../../_models/isbn";
 import { useScanner } from "./_components/useScanner";
 import { NewBookPage, type RegisteredBook } from "./page.view";
@@ -21,8 +22,14 @@ export default function NewBook() {
   const queryClient = useQueryClient();
   const elementId = useId().replace(/:/g, "");
 
-  const [code, setCode] = useState("");
   const [inputMode, setInputMode] = useState<InputMode>("scanner");
+  const [bookForm, setBookForm] = useState({
+    title: "",
+    authors: [{ id: crypto.randomUUID(), value: "" }],
+    publisher: "",
+    publishedDate: "",
+    thumbnailUrl: "",
+  });
   const [state, setState] = useState<State>({ type: "idle" });
 
   const user = authState.status === "authenticated" ? authState.user : null;
@@ -65,7 +72,10 @@ export default function NewBook() {
 
   const { state: scannerState, scannedCode } = useScanner(
     elementId,
-    inputMode === "scanner" && !!user,
+    inputMode === "scanner" &&
+      !!user &&
+      state.type !== "error" &&
+      state.type !== "registering",
   );
 
   const [lastProcessedCode, setLastProcessedCode] = useState<string | null>(
@@ -89,30 +99,84 @@ export default function NewBook() {
     }
   }, [scannedCode]);
 
-  const handleSubmit = async (e: { preventDefault: () => void }) => {
-    e.preventDefault();
-    await handleBookRegistration(code);
-  };
-
   const handleRetry = () => {
-    setCode("");
     setState((prev) => ({
       type: "idle",
       lastBook: prev.type === "success" ? prev.book : undefined,
     }));
   };
 
+  const handleManualBookRegistration = useCallback(
+    async (form: {
+      title: string;
+      authors: Array<{ id: string; value: string }>;
+      publisher: string;
+      publishedDate: string;
+      thumbnailUrl: string;
+    }) => {
+      if (!user) {
+        return;
+      }
+      if (state.type !== "idle") {
+        return;
+      }
+
+      const parsed = parseBookForm(form);
+      if ("error" in parsed) {
+        setState({ type: "error", message: parsed.error });
+        return;
+      }
+
+      setState({ type: "registering" });
+
+      const token = await user.getIdToken();
+      const { data, error: apiError } = await fetchClient.POST("/books", {
+        body: parsed,
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (apiError || !data) {
+        setState({
+          type: "error",
+          message: apiError?.message ?? "書籍登録に失敗しました",
+        });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["books"] });
+        setState({ type: "idle", lastBook: data });
+        setBookForm({
+          title: "",
+          authors: [{ id: crypto.randomUUID(), value: "" }],
+          publisher: "",
+          publishedDate: "",
+          thumbnailUrl: "",
+        });
+      }
+    },
+    [user, queryClient, state.type],
+  );
+
+  const handleManualSubmit = async (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    await handleManualBookRegistration(bookForm);
+  };
+
   if (!user) {
     return (
       <NewBookPage
-        code=""
         registrationState={{ status: "idle" }}
         scannerState={{ status: "idle" }}
         inputMode="scanner"
+        bookForm={{
+          title: "",
+          authors: [{ id: "temp", value: "" }],
+          publisher: "",
+          publishedDate: "",
+          thumbnailUrl: "",
+        }}
         scannerId=""
-        onChangeCode={() => {}}
         onChangeInputMode={() => {}}
-        onSubmit={() => {}}
+        onChangeBookForm={() => {}}
+        onManualSubmit={() => {}}
         onRetry={() => {}}
       />
     );
@@ -129,14 +193,14 @@ export default function NewBook() {
 
   return (
     <NewBookPage
-      code={code}
       registrationState={registrationState}
       scannerState={scannerState}
       inputMode={inputMode}
+      bookForm={bookForm}
       scannerId={elementId}
-      onChangeCode={setCode}
       onChangeInputMode={setInputMode}
-      onSubmit={handleSubmit}
+      onChangeBookForm={setBookForm}
+      onManualSubmit={handleManualSubmit}
       onRetry={handleRetry}
     />
   );
