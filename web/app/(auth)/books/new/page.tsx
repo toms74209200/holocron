@@ -4,19 +4,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useId, useState } from "react";
 import { useAuth } from "@/app/_components/AuthProvider";
 import { fetchClient } from "@/app/_lib/query";
+import { parseBookForm } from "../../_models/bookForm";
 import { parseIsbn } from "../../_models/isbn";
 import { useScanner } from "./_components/useScanner";
 import { NewBookPage, type RegisteredBook } from "./page.view";
 
 type InputMode = "scanner" | "manual";
-
-type BookDetailForm = {
-  title: string;
-  authors: Array<{ id: string; value: string }>;
-  publisher: string;
-  publishedDate: string;
-  thumbnailUrl: string;
-};
 
 type State =
   | { type: "idle"; lastBook?: RegisteredBook }
@@ -24,30 +17,13 @@ type State =
   | { type: "success"; book: RegisteredBook }
   | { type: "error"; message: string };
 
-const validateBookForm = (form: BookDetailForm): string | null => {
-  if (!form.title.trim()) {
-    return "タイトルは必須です";
-  }
-
-  const validAuthors = form.authors.filter((a) => a.value.trim());
-  if (validAuthors.length === 0) {
-    return "著者は1人以上必須です";
-  }
-
-  if (form.publishedDate && !/^\d{4}-\d{2}-\d{2}$/.test(form.publishedDate)) {
-    return "出版日の形式が正しくありません（YYYY-MM-DD）";
-  }
-
-  return null;
-};
-
 export default function NewBook() {
   const authState = useAuth();
   const queryClient = useQueryClient();
   const elementId = useId().replace(/:/g, "");
 
   const [inputMode, setInputMode] = useState<InputMode>("scanner");
-  const [bookForm, setBookForm] = useState<BookDetailForm>({
+  const [bookForm, setBookForm] = useState({
     title: "",
     authors: [{ id: crypto.randomUUID(), value: "" }],
     publisher: "",
@@ -96,7 +72,10 @@ export default function NewBook() {
 
   const { state: scannerState, scannedCode } = useScanner(
     elementId,
-    inputMode === "scanner" && !!user,
+    inputMode === "scanner" &&
+      !!user &&
+      state.type !== "error" &&
+      state.type !== "registering",
   );
 
   const [lastProcessedCode, setLastProcessedCode] = useState<string | null>(
@@ -128,7 +107,13 @@ export default function NewBook() {
   };
 
   const handleManualBookRegistration = useCallback(
-    async (form: BookDetailForm) => {
+    async (form: {
+      title: string;
+      authors: Array<{ id: string; value: string }>;
+      publisher: string;
+      publishedDate: string;
+      thumbnailUrl: string;
+    }) => {
       if (!user) {
         return;
       }
@@ -136,27 +121,17 @@ export default function NewBook() {
         return;
       }
 
-      const error = validateBookForm(form);
-      if (error) {
-        setState({ type: "error", message: error });
+      const parsed = parseBookForm(form);
+      if ("error" in parsed) {
+        setState({ type: "error", message: parsed.error });
         return;
       }
 
       setState({ type: "registering" });
 
-      const validAuthors = form.authors
-        .filter((a) => a.value.trim())
-        .map((a) => a.value.trim());
-
       const token = await user.getIdToken();
       const { data, error: apiError } = await fetchClient.POST("/books", {
-        body: {
-          title: form.title.trim(),
-          authors: validAuthors,
-          publisher: form.publisher.trim() || undefined,
-          publishedDate: form.publishedDate.trim() || undefined,
-          thumbnailUrl: form.thumbnailUrl.trim() || undefined,
-        },
+        body: parsed,
         headers: { Authorization: `Bearer ${token}` },
       });
 

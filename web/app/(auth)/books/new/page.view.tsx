@@ -15,14 +15,6 @@ export type RegisteredBook = {
 
 type InputMode = "scanner" | "manual";
 
-type BookDetailForm = {
-  title: string;
-  authors: Array<{ id: string; value: string }>;
-  publisher: string;
-  publishedDate: string;
-  thumbnailUrl: string;
-};
-
 type RegistrationState =
   | { status: "idle"; lastBook?: RegisteredBook }
   | { status: "registering"; lastBook?: RegisteredBook }
@@ -32,10 +24,22 @@ interface NewBookPageProps {
   registrationState: RegistrationState;
   scannerState: ScannerState;
   inputMode: InputMode;
-  bookForm: BookDetailForm;
+  bookForm: {
+    title: string;
+    authors: Array<{ id: string; value: string }>;
+    publisher: string;
+    publishedDate: string;
+    thumbnailUrl: string;
+  };
   scannerId: string;
   onChangeInputMode: (mode: InputMode) => void;
-  onChangeBookForm: (form: BookDetailForm) => void;
+  onChangeBookForm: (form: {
+    title: string;
+    authors: Array<{ id: string; value: string }>;
+    publisher: string;
+    publishedDate: string;
+    thumbnailUrl: string;
+  }) => void;
   onManualSubmit: (e: { preventDefault: () => void }) => void;
   onRetry: () => void;
 }
@@ -122,7 +126,7 @@ export const NewBookPage: FC<NewBookPageProps> = ({
           {registrationState.status === "error" ? (
             <ErrorView message={registrationState.message} onRetry={onRetry} />
           ) : (
-            <ManualInputView
+            <InputModeView
               inputMode={inputMode}
               bookForm={bookForm}
               scannerId={scannerId}
@@ -189,18 +193,30 @@ const ErrorView: FC<{
   </div>
 );
 
-interface ManualInputViewProps {
+interface InputModeViewProps {
   inputMode: InputMode;
-  bookForm: BookDetailForm;
+  bookForm: {
+    title: string;
+    authors: Array<{ id: string; value: string }>;
+    publisher: string;
+    publishedDate: string;
+    thumbnailUrl: string;
+  };
   scannerId: string;
   scannerState: ScannerState;
   isRegistering: boolean;
   onChangeInputMode: (mode: InputMode) => void;
-  onChangeBookForm: (form: BookDetailForm) => void;
+  onChangeBookForm: (form: {
+    title: string;
+    authors: Array<{ id: string; value: string }>;
+    publisher: string;
+    publishedDate: string;
+    thumbnailUrl: string;
+  }) => void;
   onManualSubmit: (e: { preventDefault: () => void }) => void;
 }
 
-const ManualInputView: FC<ManualInputViewProps> = ({
+const InputModeView: FC<InputModeViewProps> = ({
   inputMode,
   bookForm,
   scannerId,
@@ -355,9 +371,21 @@ const ManualInputView: FC<ManualInputViewProps> = ({
 );
 
 interface DetailInputFormProps {
-  bookForm: BookDetailForm;
+  bookForm: {
+    title: string;
+    authors: Array<{ id: string; value: string }>;
+    publisher: string;
+    publishedDate: string;
+    thumbnailUrl: string;
+  };
   isRegistering: boolean;
-  onChangeBookForm: (form: BookDetailForm) => void;
+  onChangeBookForm: (form: {
+    title: string;
+    authors: Array<{ id: string; value: string }>;
+    publisher: string;
+    publishedDate: string;
+    thumbnailUrl: string;
+  }) => void;
   onSubmit: (e: { preventDefault: () => void }) => void;
 }
 
@@ -423,7 +451,7 @@ const DetailInputForm: FC<DetailInputFormProps> = ({
   };
 
   const isFormValid =
-    bookForm.title.trim() && bookForm.authors.some((a) => a.value.trim());
+    !!bookForm.title.trim() && bookForm.authors.some((a) => !!a.value.trim());
 
   return (
     <form onSubmit={onSubmit} className={["space-y-4"].join(" ")}>
@@ -456,6 +484,7 @@ const DetailInputForm: FC<DetailInputFormProps> = ({
                 value={author.value}
                 onChange={(e) => handleAuthorChange(index, e.target.value)}
                 placeholder={`著者${index + 1}`}
+                aria-label={`著者${index + 1}`}
                 disabled={isRegistering}
                 className={inputClasses}
               />
@@ -463,6 +492,7 @@ const DetailInputForm: FC<DetailInputFormProps> = ({
                 <button
                   type="button"
                   onClick={() => handleRemoveAuthor(index)}
+                  aria-label="著者を削除"
                   disabled={isRegistering}
                   className={[
                     "flex",
