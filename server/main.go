@@ -3,10 +3,14 @@ package main
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"holocron/internal/api"
 	"holocron/internal/auth"
@@ -192,8 +196,38 @@ func main() {
 		mux.ServeHTTP(w, r)
 	})
 
-	fmt.Println("Server starting on :8080")
-	if err := http.ListenAndServe(":8080", handler); err != nil {
-		log.Fatal(err)
+	httpServer := &http.Server{
+		Addr:    ":8080",
+		Handler: handler,
+	}
+
+	serverErrors := make(chan error, 1)
+	go func() {
+		fmt.Println("Server starting on :8080")
+		serverErrors <- httpServer.ListenAndServe()
+	}()
+
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, os.Interrupt, syscall.SIGTERM)
+
+	select {
+	case err := <-serverErrors:
+		if !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("Server error: %v", err)
+		}
+	case sig := <-signalChan:
+		log.Printf("Received signal: %v. Starting graceful shutdown...", sig)
+
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		if err := httpServer.Shutdown(shutdownCtx); err != nil {
+			log.Printf("Error during server shutdown: %v", err)
+			if err := httpServer.Close(); err != nil {
+				log.Printf("Error closing server: %v", err)
+			}
+		}
+
+		log.Println("Server stopped gracefully")
 	}
 }
