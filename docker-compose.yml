@@ -10,6 +10,7 @@ services:
       - FIREBASE_AUTH_EMULATOR_HOST=firebase:19099
       - GOOGLE_BOOKS_API_URL=http://fake-google-books:4010
       - OPENBD_API_URL=http://fake-openbd:4011
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318
     command: sleep infinity
 
   web:
@@ -57,3 +58,12 @@ services:
     volumes:
       - ./fake:/fake:ro
     command: ["mock", "-h", "0.0.0.0", "-p", "4011", "/fake/openbd.yml"]
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+      - "4318:4318"
+      - "4317:4317"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true

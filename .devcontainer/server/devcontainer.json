@@ -6,7 +6,7 @@
 	"dockerComposeFile": ["../../docker-compose.yml"],
 	"service": "server",
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-	"runServices": ["firebase", "fake-google-books", "fake-openbd"],
+	"runServices": ["firebase", "fake-google-books", "fake-openbd", "jaeger"],
 
 	"remoteEnv": { "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}" },
 
