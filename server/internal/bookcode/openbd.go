@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type OpenBDFetcher struct {
@@ -21,7 +23,9 @@ func NewOpenBDFetcher() (*OpenBDFetcher, error) {
 	}
 	return &OpenBDFetcher{
 		baseURL: baseURL,
-		client:  http.DefaultClient,
+		client: &http.Client{
+			Transport: otelhttp.NewTransport(http.DefaultTransport),
+		},
 	}, nil
 }
 
