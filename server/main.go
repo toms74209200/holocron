@@ -20,11 +20,13 @@ import (
 	bookcodeDomain "holocron/internal/bookcode/domain"
 	"holocron/internal/books"
 	"holocron/internal/lending"
+	"holocron/internal/tracing"
 	"holocron/internal/user"
 
 	_ "modernc.org/sqlite"
 
 	openapi_types "github.com/oapi-codegen/runtime/types"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type server struct {
@@ -115,6 +117,16 @@ func initDB(database *sql.DB) error {
 func main() {
 	ctx := context.Background()
 
+	shutdown, err := tracing.Init("holocron")
+	if err != nil {
+		log.Fatalf("tracing init failed: %v", err)
+	}
+	defer func() {
+		if err := shutdown(ctx); err != nil {
+			log.Printf("tracing shutdown failed: %v", err)
+		}
+	}()
+
 	database, err := sql.Open("sqlite", ":memory:")
 	if err != nil {
 		log.Fatal(err)
@@ -202,8 +214,12 @@ func main() {
 	})
 
 	httpServer := &http.Server{
-		Addr:    ":8080",
-		Handler: handler,
+		Addr: ":8080",
+		Handler: otelhttp.NewHandler(handler, "",
+			otelhttp.WithSpanNameFormatter(func(_ string, r *http.Request) string {
+				return r.Method + " " + r.URL.Path
+			}),
+		),
 	}
 
 	serverErrors := make(chan error, 1)
