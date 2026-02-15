@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type GoogleBooksFetcher struct {
@@ -21,7 +23,9 @@ func NewGoogleBooksFetcher() (*GoogleBooksFetcher, error) {
 	}
 	return &GoogleBooksFetcher{
 		baseURL: baseURL,
-		client:  http.DefaultClient,
+		client: &http.Client{
+			Transport: otelhttp.NewTransport(http.DefaultTransport),
+		},
 	}, nil
 }
 
