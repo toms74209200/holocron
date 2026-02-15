@@ -1,10 +1,8 @@
 "use client";
 
 import { Icon } from "@iconify/react";
-import Image from "next/image";
 import Link from "next/link";
 import { BookInfoCard } from "./_components/BookInfoCard";
-import holocronLogo from "./_components/holocron-logo.svg";
 import type { Book } from "./_models/book";
 
 interface HomePageProps {
@@ -34,43 +32,20 @@ export const HomePage: React.FC<HomePageProps> = ({
     <div
       className={["min-h-screen", "bg-slate-50", "dark:bg-slate-950"].join(" ")}
     >
-      <header
-        className={[
-          "border-b",
-          "border-slate-200",
-          "bg-white",
-          "dark:border-slate-800",
-          "dark:bg-slate-900",
-        ].join(" ")}
-      >
-        <div
-          className={[
-            "mx-auto",
-            "flex",
-            "max-w-4xl",
-            "items-center",
-            "justify-between",
-            "px-4",
-            "py-4",
-          ].join(" ")}
-        >
-          <h1>
-            <Image
-              src={holocronLogo}
-              alt="HOLOCRON"
-              className={["h-7", "w-auto", "dark:invert"].join(" ")}
-            />
-          </h1>
+      <main className={["mx-auto", "max-w-4xl", "p-4"].join(" ")}>
+        <div className={["mb-6", "space-y-4"].join(" ")}>
+          {/* 登録ボタン（モバイルのみ） */}
           <Link
             href="/books/new"
             className={[
               "flex",
               "items-center",
-              "gap-1",
+              "justify-center",
+              "gap-2",
               "rounded-lg",
               "bg-sky-700",
               "px-4",
-              "py-2",
+              "py-3",
               "text-sm",
               "font-semibold",
               "text-white",
@@ -78,16 +53,13 @@ export const HomePage: React.FC<HomePageProps> = ({
               "hover:bg-sky-800",
               "dark:bg-sky-600",
               "dark:hover:bg-sky-700",
+              "md:hidden",
             ].join(" ")}
           >
-            <Icon icon="material-symbols:add" className="h-4 w-4" />
-            登録
+            <Icon icon="material-symbols:add" className="size-5" />
+            書籍を登録
           </Link>
-        </div>
-      </header>
 
-      <main className={["mx-auto", "max-w-4xl", "p-4"].join(" ")}>
-        <div className={["mb-6"].join(" ")}>
           <div className={["relative"].join(" ")}>
             <label
               htmlFor="search"
@@ -174,7 +146,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 "dark:text-slate-500",
               ].join(" ")}
             >
-              右上の「+ 登録」から書籍を追加してください
+              「書籍を登録」から書籍を追加してください
             </p>
           </div>
         ) : (
@@ -241,8 +213,9 @@ export const HomePage: React.FC<HomePageProps> = ({
           onClick={onScrollToTop}
           className={[
             "fixed",
-            "bottom-6",
+            "bottom-20",
             "right-6",
+            "md:bottom-6",
             "flex",
             "size-12",
             "items-center",
