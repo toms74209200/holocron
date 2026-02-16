@@ -25,25 +25,15 @@ const calculateDueDays = (dueDate: string) => {
   return today.until(due).days;
 };
 
-const getBorrowErrorMessage = (error: { code: string; message?: string }) => {
-  if (error.code === "CONFLICT") {
-    return "この書籍は既に貸出中です";
-  }
-  if (error.code === "NOT_FOUND") {
-    return "書籍が見つかりません";
-  }
-  return error.message ?? "借りることができませんでした";
-};
+const borrowErrorMessages = {
+  CONFLICT: "この書籍は既に貸出中です",
+  NOT_FOUND: "書籍が見つかりません",
+} as const;
 
-const getReturnErrorMessage = (error: { code: string; message?: string }) => {
-  if (error.code === "CONFLICT") {
-    return "この書籍は貸出中ではありません";
-  }
-  if (error.code === "NOT_FOUND") {
-    return "書籍が見つかりません";
-  }
-  return error.message ?? "返却に失敗しました";
-};
+const returnErrorMessages = {
+  CONFLICT: "この書籍は貸出中ではありません",
+  NOT_FOUND: "書籍が見つかりません",
+} as const;
 
 function BookDetailContent({ bookId }: { bookId: string }) {
   const authState = useAuth();
@@ -89,10 +79,14 @@ function BookDetailContent({ bookId }: { bookId: string }) {
       });
 
       if (error) {
-        setActionState({
-          status: "error",
-          message: getBorrowErrorMessage(error),
-        });
+        const message =
+          (error.code &&
+            borrowErrorMessages[
+              error.code as keyof typeof borrowErrorMessages
+            ]) ??
+          error.message ??
+          "借りることができませんでした";
+        setActionState({ status: "error", message });
         return;
       }
     } catch (_err) {
@@ -116,10 +110,14 @@ function BookDetailContent({ bookId }: { bookId: string }) {
       });
 
       if (error) {
-        setActionState({
-          status: "error",
-          message: getReturnErrorMessage(error),
-        });
+        const message =
+          (error.code &&
+            returnErrorMessages[
+              error.code as keyof typeof returnErrorMessages
+            ]) ??
+          error.message ??
+          "返却に失敗しました";
+        setActionState({ status: "error", message });
         return;
       }
     } catch (_err) {

@@ -95,6 +95,7 @@ export const BookDetailPage: FC<BookDetailPageProps> = ({
       <main className={["mx-auto", "max-w-md", "p-4", "space-y-4"].join(" ")}>
         <div
           className={[
+            "relative",
             "rounded-xl",
             "border",
             "border-slate-200",
@@ -104,13 +105,42 @@ export const BookDetailPage: FC<BookDetailPageProps> = ({
             "dark:bg-slate-900",
           ].join(" ")}
         >
-          <BookInfoCard
-            title={book.title}
-            authors={book.authors}
-            status={book.status}
-            borrower={book.borrower}
-            thumbnailUrl={book.thumbnailUrl}
-          />
+          {book.status === "available" && (
+            <Link
+              href={`/book/delete?id=${book.id}`}
+              className={[
+                "absolute",
+                "right-4",
+                "top-4",
+                "flex",
+                "items-center",
+                "justify-center",
+                "rounded-lg",
+                "p-2",
+                "text-red-600",
+                "transition-colors",
+                "hover:bg-red-50",
+                "dark:text-red-400",
+                "dark:hover:bg-red-950",
+              ].join(" ")}
+              aria-label="削除"
+            >
+              <Icon
+                icon="material-symbols:delete-outline"
+                className="h-5 w-5"
+              />
+            </Link>
+          )}
+
+          <div className={book.status === "available" ? "pr-10" : ""}>
+            <BookInfoCard
+              title={book.title}
+              authors={book.authors}
+              status={book.status}
+              borrower={book.borrower}
+              thumbnailUrl={book.thumbnailUrl}
+            />
+          </div>
 
           {(book.publisher || book.publishedDate || book.code) && (
             <div
