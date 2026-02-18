@@ -12,7 +12,6 @@ import (
 	"github.com/google/uuid"
 )
 
-
 type UpdateBookInput struct {
 	BookID        string
 	Code          *string

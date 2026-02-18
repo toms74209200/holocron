@@ -36,15 +36,15 @@ type BookQueries interface {
 
 type BorrowBookService struct {
 	lendingQueries *Queries
-	bookQueries BookQueries
-	now         func() time.Time
+	bookQueries    BookQueries
+	now            func() time.Time
 }
 
 func NewBorrowBookService(lendingQueries *Queries, bookQueries BookQueries) *BorrowBookService {
 	return &BorrowBookService{
 		lendingQueries: lendingQueries,
-		bookQueries: bookQueries,
-		now:         func() time.Time { return time.Now().UTC() },
+		bookQueries:    bookQueries,
+		now:            func() time.Time { return time.Now().UTC() },
 	}
 }
 
@@ -125,7 +125,7 @@ func (s *BorrowBookService) BorrowBook(ctx context.Context, input BorrowBookInpu
 	eventID := uuid.New().String()
 	err = s.lendingQueries.InsertLendingEvent(ctx, InsertLendingEventParams{
 		EventID:    eventID,
-		LendingID:     currentLendingRow.LendingID,
+		LendingID:  currentLendingRow.LendingID,
 		BookID:     currentLendingRow.BookID,
 		BorrowerID: currentLendingRow.BorrowerID,
 		EventType:  "due_date_extended",

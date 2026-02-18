@@ -90,6 +90,58 @@ func TestListAllBooksSource_ReturnsAllBooks(t *testing.T) {
 	}
 }
 
+func TestFindByCodeSource_WithMatchingCode_ReturnsMatchingBook(t *testing.T) {
+	db := setupTestDB(t)
+	queries := New(db)
+	ctx := context.Background()
+
+	code := "9784873119045"
+	_, err := db.ExecContext(ctx, `
+		INSERT INTO book_events (event_id, book_id, event_type, code, title, authors, occurred_at)
+		VALUES ('evt-1', 'book-1', 'created', ?, 'Go Programming', '["Author A"]', '2024-01-01T00:00:00Z')
+	`, code)
+	if err != nil {
+		t.Fatalf("failed to insert book event: %v", err)
+	}
+	_, _ = CreateBook(ctx, queries, CreateBookInput{
+		Title:   "Python Programming",
+		Authors: []string{"Author B"},
+	})
+
+	pagination := domain.ToPagination(nil, nil)
+
+	source := FindByCodeSource(queries, &code)
+	items, total, err := source(ctx, nil, pagination)
+
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(items) != 1 {
+		t.Errorf("expected 1 item, got %d", len(items))
+	}
+	if total != 1 {
+		t.Errorf("expected total 1, got %d", total)
+	}
+	if items[0].Title != "Go Programming" {
+		t.Errorf("expected title 'Go Programming', got %s", items[0].Title)
+	}
+}
+
+func TestFindByCodeSource_WithNilCode_ReturnsErrNotMyResponsibility(t *testing.T) {
+	db := setupTestDB(t)
+	queries := New(db)
+	ctx := context.Background()
+
+	pagination := domain.ToPagination(nil, nil)
+
+	source := FindByCodeSource(queries, nil)
+	_, _, err := source(ctx, nil, pagination)
+
+	if err != domain.ErrNotMyResponsibility {
+		t.Errorf("expected ErrNotMyResponsibility, got %v", err)
+	}
+}
+
 func TestGetBookList_WithSources_UsesChainOfResponsibility(t *testing.T) {
 	db := setupTestDB(t)
 	queries := New(db)

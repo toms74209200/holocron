@@ -2,13 +2,21 @@ package books
 
 import (
 	"context"
+	"database/sql"
 
 	"holocron/internal/books/domain"
 )
 
-func ListAllBooksSource(queries *Queries) domain.BookListSource {
+func FindByCodeSource(queries *Queries, code *string) domain.BookListSource {
 	return func(ctx context.Context, keyword *domain.SearchKeyword, pagination domain.Pagination) ([]domain.BookItem, int64, error) {
-		rows, err := queries.ListBooks(ctx, ListBooksParams{
+		if code == nil {
+			return nil, 0, domain.ErrNotMyResponsibility
+		}
+
+		codeParam := sql.NullString{String: *code, Valid: true}
+
+		rows, err := queries.FindBooksByCode(ctx, FindBooksByCodeParams{
+			Code:   codeParam,
 			Limit:  int64(pagination.Limit()),
 			Offset: int64(pagination.Offset()),
 		})
@@ -16,7 +24,7 @@ func ListAllBooksSource(queries *Queries) domain.BookListSource {
 			return nil, 0, err
 		}
 
-		total, err := queries.CountBooks(ctx)
+		total, err := queries.CountBooksByCode(ctx, codeParam)
 		if err != nil {
 			return nil, 0, err
 		}

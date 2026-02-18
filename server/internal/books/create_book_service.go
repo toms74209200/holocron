@@ -18,6 +18,7 @@ var (
 )
 
 type CreateBookInput struct {
+	Code          *string
 	Title         string
 	Authors       []string
 	Publisher     *string
@@ -59,7 +60,7 @@ func CreateBook(ctx context.Context, queries *Queries, input CreateBookInput) (*
 		EventID:       uuid.New().String(),
 		BookID:        bookID,
 		EventType:     "created",
-		Code:          sql.NullString{},
+		Code:          toNullString(input.Code),
 		Title:         sql.NullString{String: string(title), Valid: true},
 		Authors:       sql.NullString{String: string(authorsJSON), Valid: true},
 		Publisher:     toNullString(input.Publisher),
