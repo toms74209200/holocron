@@ -127,6 +127,44 @@ def test_get_books_with_search_query():
     assert unique_title in titles
 
 
+def test_get_books_with_code_parameter():
+    token = create_user_and_get_token()
+
+    unique_code = random_string()
+    result = post_books.sync_detailed(
+        client=AuthenticatedClient(base_url=BASE_URL, token=token),
+        body=PostBooksBody(title=random_string(), authors=[random_string()], code=unique_code),
+    )
+    assert result.status_code == 201
+
+    response = requests.get(
+        f"{BASE_URL}/books",
+        params={"code": unique_code},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total"] >= 1
+    codes = [item.get("code") for item in data["items"]]
+    assert unique_code in codes
+
+
+def test_get_books_with_nonexistent_code_returns_empty():
+    token = create_user_and_get_token()
+
+    response = requests.get(
+        f"{BASE_URL}/books",
+        params={"code": "nonexistent-code-" + random_string()},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total"] == 0
+    assert data["items"] == []
+
+
 def test_get_books_without_auth_returns_401():
     response = requests.get(f"{BASE_URL}/books")
 
