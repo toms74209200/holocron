@@ -8,6 +8,7 @@ import (
 
 type ListBooksInput struct {
 	Q      *string
+	Code   *string
 	Limit  *int
 	Offset *int
 }
@@ -26,6 +27,7 @@ func ListBooks(
 	pagination := domain.ToPagination(input.Limit, input.Offset)
 
 	sources := []domain.BookListSource{
+		FindByCodeSource(queries, input.Code),
 		SearchBooksSource(queries),
 		ListAllBooksSource(queries),
 	}

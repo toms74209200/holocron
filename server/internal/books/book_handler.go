@@ -20,6 +20,7 @@ func NewCreateBookHandler(queries *Queries) *CreateBookHandler {
 
 func (h *CreateBookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var req struct {
+		Code          *string  `json:"code"`
 		Title         string   `json:"title"`
 		Authors       []string `json:"authors"`
 		Publisher     *string  `json:"publisher"`
@@ -32,6 +33,7 @@ func (h *CreateBookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	output, err := CreateBook(r.Context(), h.queries, CreateBookInput{
+		Code:          req.Code,
 		Title:         req.Title,
 		Authors:       req.Authors,
 		Publisher:     req.Publisher,
@@ -78,6 +80,7 @@ func NewListBooksHandler(queries *Queries) *ListBooksHandler {
 func (h *ListBooksHandler) ServeHTTP(w http.ResponseWriter, r *http.Request, params api.GetBooksParams) {
 	output, err := ListBooks(r.Context(), h.queries, ListBooksInput{
 		Q:      params.Q,
+		Code:   params.Code,
 		Limit:  params.Limit,
 		Offset: params.Offset,
 	})
