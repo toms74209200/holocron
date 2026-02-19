@@ -211,6 +211,58 @@ def test_post_books_book_id_with_nonexistent_book_returns_404():
     assert "message" in data
 
 
+def test_post_books_book_id_with_code_when_no_code_returns_200():
+    token = create_user_and_get_token()
+
+    create_result = post_books.sync_detailed(
+        client=AuthenticatedClient(base_url=BASE_URL, token=token),
+        body=PostBooksBody(
+            title=random_string(),
+            authors=[random_string()],
+        ),
+    )
+    assert create_result.status_code == 201
+    created_book = create_result.parsed
+
+    new_code = random_string()
+    response = requests.post(
+        f"{BASE_URL}/books/{created_book.id}",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"code": new_code},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["code"] == new_code
+
+
+def test_post_books_book_id_with_code_when_code_already_set_returns_409():
+    token = create_user_and_get_token()
+
+    initial_code = random_string()
+    create_result = post_books.sync_detailed(
+        client=AuthenticatedClient(base_url=BASE_URL, token=token),
+        body=PostBooksBody(
+            title=random_string(),
+            authors=[random_string()],
+            code=initial_code,
+        ),
+    )
+    assert create_result.status_code == 201
+    created_book = create_result.parsed
+
+    response = requests.post(
+        f"{BASE_URL}/books/{created_book.id}",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"code": random_string()},
+    )
+
+    assert response.status_code == 409
+    data = response.json()
+    assert data["code"] == "conflict"
+    assert "message" in data
+
+
 def test_post_books_book_id_without_auth_returns_401():
     token = create_user_and_get_token()
 
