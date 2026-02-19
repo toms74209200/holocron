@@ -114,6 +114,8 @@ func (h *UpdateBookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request, bo
 		switch {
 		case errors.Is(err, ErrBookNotFound):
 			writeError(w, http.StatusNotFound, "not_found", "book not found")
+		case errors.Is(err, ErrBookCodeAlreadySet):
+			writeError(w, http.StatusConflict, "conflict", "book code is already set and cannot be changed")
 		case errors.Is(err, domain.ErrInvalidTitle):
 			writeError(w, http.StatusBadRequest, "invalid_request", "title must be 1-200 characters")
 		case errors.Is(err, domain.ErrInvalidAuthors):

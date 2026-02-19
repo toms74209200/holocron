@@ -264,6 +264,68 @@ func TestUpdateBook_WithInvalidAuthors_ReturnsInvalidAuthorsError(t *testing.T) 
 	}
 }
 
+// When UpdateBook with code when no code is set then sets code
+func TestUpdateBook_WithCodeWhenNoCode_SetsCode(t *testing.T) {
+	db := setupTestDB(t)
+	queries := New(db)
+	ctx := context.Background()
+
+	bookID := uuid.New().String()
+	initialTitle := uuid.New().String()
+	initialAuthors := fmt.Sprintf(`["%s"]`, uuid.New().String())
+	initialOccurredAt := time.Now().Add(-time.Duration(rand.Intn(720)+1) * time.Hour).Format(time.RFC3339)
+	_, err := db.ExecContext(ctx, `
+		INSERT INTO book_events (event_id, book_id, event_type, title, authors, occurred_at)
+		VALUES (?, ?, 'created', ?, ?, ?)
+	`, uuid.New().String(), bookID, initialTitle, initialAuthors, initialOccurredAt)
+	if err != nil {
+		t.Fatalf("failed to insert book: %v", err)
+	}
+
+	newCode := uuid.New().String()
+	output, err := UpdateBook(ctx, queries, UpdateBookInput{
+		BookID: bookID,
+		Code:   &newCode,
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if output.Code == nil || *output.Code != newCode {
+		t.Errorf("expected code %s, got %v", newCode, output.Code)
+	}
+}
+
+// When UpdateBook with code when code is already set then returns error
+func TestUpdateBook_WithCodeWhenCodeAlreadySet_ReturnsError(t *testing.T) {
+	db := setupTestDB(t)
+	queries := New(db)
+	ctx := context.Background()
+
+	bookID := uuid.New().String()
+	initialCode := uuid.New().String()
+	initialTitle := uuid.New().String()
+	initialAuthors := fmt.Sprintf(`["%s"]`, uuid.New().String())
+	initialOccurredAt := time.Now().Add(-time.Duration(rand.Intn(720)+1) * time.Hour).Format(time.RFC3339)
+	_, err := db.ExecContext(ctx, `
+		INSERT INTO book_events (event_id, book_id, event_type, code, title, authors, occurred_at)
+		VALUES (?, ?, 'created', ?, ?, ?, ?)
+	`, uuid.New().String(), bookID, initialCode, initialTitle, initialAuthors, initialOccurredAt)
+	if err != nil {
+		t.Fatalf("failed to insert book: %v", err)
+	}
+
+	newCode := uuid.New().String()
+	_, err = UpdateBook(ctx, queries, UpdateBookInput{
+		BookID: bookID,
+		Code:   &newCode,
+	})
+
+	if !errors.Is(err, ErrBookCodeAlreadySet) {
+		t.Errorf("expected ErrBookCodeAlreadySet, got %v", err)
+	}
+}
+
 // When UpdateBook multiple times then applies latest update
 func TestUpdateBook_WithMultipleUpdates_AppliesLatestUpdate(t *testing.T) {
 	db := setupTestDB(t)

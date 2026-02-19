@@ -53,6 +53,9 @@ func UpdateBook(ctx context.Context, queries *Queries, input UpdateBookInput) (*
 
 	updatedCode := currentBook.Code
 	if input.Code != nil {
+		if currentBook.Code.Valid {
+			return nil, ErrBookCodeAlreadySet
+		}
 		updatedCode = sql.NullString{String: *input.Code, Valid: true}
 	}
 
