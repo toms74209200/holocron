@@ -834,6 +834,23 @@ paths:
               example:
                 code: "NOT_FOUND"
                 message: "指定された書籍が見つかりません"
+        '409':
+          description: 書籍コードは既に設定済みのため変更不可
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+              example:
+                code: "conflict"
+                message: "書籍コードは既に設定されており、変更できません"
 
     delete:
       summary: 書籍削除

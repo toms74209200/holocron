@@ -9,9 +9,10 @@ import (
 )
 
 var (
-	ErrBookNotFound   = errors.New("book not found")
-	ErrInvalidBookID  = errors.New("invalid book ID")
-	ErrInvalidBookRow = errors.New("invalid book row")
+	ErrBookNotFound      = errors.New("book not found")
+	ErrInvalidBookID     = errors.New("invalid book ID")
+	ErrInvalidBookRow    = errors.New("invalid book row")
+	ErrBookCodeAlreadySet = errors.New("book code already set")
 )
 
 type GetBookInput struct {
