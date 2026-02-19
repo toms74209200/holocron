@@ -10,6 +10,11 @@ const navItems = [
     href: "/",
     icon: "material-symbols:book",
   },
+  {
+    label: "貸出・返却",
+    href: "/lending",
+    icon: "material-symbols:swap-horiz",
+  },
 ] as const;
 
 export const BottomNavigation: React.FC = () => {
