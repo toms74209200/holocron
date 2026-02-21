@@ -106,6 +106,91 @@ paths:
                   message:
                     type: string
 
+  /users/me/borrowing:
+    get:
+      summary: 自分が借りている本の一覧
+      description: 認証ユーザーが現在借りている本の一覧を取得
+      operationId: getUsersMeBorrowing
+      tags:
+        - Users
+      responses:
+        '200':
+          description: 借りている本の一覧
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - total
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - id
+                        - title
+                        - authors
+                        - borrowedAt
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        code:
+                          type: string
+                        title:
+                          type: string
+                        authors:
+                          type: array
+                          items:
+                            type: string
+                        publisher:
+                          type: string
+                        publishedDate:
+                          type: string
+                        thumbnailUrl:
+                          type: string
+                          format: uri
+                        borrowedAt:
+                          type: string
+                          format: date-time
+                        dueDate:
+                          type: string
+                          format: date-time
+                  total:
+                    type: integer
+              example:
+                items:
+                  - id: "550e8400-e29b-41d4-a716-446655440001"
+                    code: "9784873119045"
+                    title: "Go言語によるWebアプリケーション開発"
+                    authors:
+                      - "Mat Ryer"
+                    publisher: "オライリージャパン"
+                    publishedDate: "2016-01-22"
+                    thumbnailUrl: "https://www.oreilly.co.jp/books/images/picture_large978-4-87311-904-5.jpeg"
+                    borrowedAt: "2024-01-15T10:30:00Z"
+                    dueDate: "2024-01-22T10:30:00Z"
+                total: 1
+        '401':
+          description: 認証が必要
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+              example:
+                code: "UNAUTHORIZED"
+                message: "認証が必要です"
+
   /books:
     get:
       summary: 書籍一覧・検索
