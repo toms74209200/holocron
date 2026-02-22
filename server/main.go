@@ -31,6 +31,7 @@ import (
 
 type server struct {
 	createUserHandler       *user.CreateUserHandler
+	getMyBorrowingHandler   *user.GetMyBorrowingHandler
 	createBookHandler       *books.CreateBookHandler
 	createBookByCodeHandler *bookcode.CreateBookByCodeHandler
 	listBooksHandler        *books.ListBooksHandler
@@ -68,6 +69,10 @@ func (s *server) PostBooksReturn(w http.ResponseWriter, r *http.Request, bookId 
 
 func (s *server) PostUsers(w http.ResponseWriter, r *http.Request) {
 	s.createUserHandler.ServeHTTP(w, r)
+}
+
+func (s *server) GetUsersMeBorrowing(w http.ResponseWriter, r *http.Request) {
+	s.getMyBorrowingHandler.ServeHTTP(w, r)
 }
 
 func initDB(database *sql.DB) error {
@@ -172,6 +177,7 @@ func main() {
 
 	srv := &server{
 		createUserHandler:       user.NewCreateUserHandler(userQueries, firebaseAuth),
+		getMyBorrowingHandler:   user.NewGetMyBorrowingHandler(lendingQueries),
 		createBookHandler:       books.NewCreateBookHandler(booksQueries),
 		createBookByCodeHandler: bookcode.NewCreateBookByCodeHandler(bookcodeQueries, bookInfoSources),
 		listBooksHandler:        books.NewListBooksHandler(booksQueries),
