@@ -106,11 +106,11 @@ paths:
                   message:
                     type: string
 
-  /users/me/borrowing:
+  /users/me/borrowings:
     get:
       summary: 自分が借りている本の一覧
       description: 認証ユーザーが現在借りている本の一覧を取得
-      operationId: getUsersMeBorrowing
+      operationId: getUsersMeBorrowings
       tags:
         - Users
       responses:
@@ -188,7 +188,7 @@ paths:
                   message:
                     type: string
               example:
-                code: "UNAUTHORIZED"
+                code: "unauthorized"
                 message: "認証が必要です"
 
   /books:

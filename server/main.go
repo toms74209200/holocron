@@ -71,7 +71,7 @@ func (s *server) PostUsers(w http.ResponseWriter, r *http.Request) {
 	s.createUserHandler.ServeHTTP(w, r)
 }
 
-func (s *server) GetUsersMeBorrowing(w http.ResponseWriter, r *http.Request) {
+func (s *server) GetUsersMeBorrowings(w http.ResponseWriter, r *http.Request) {
 	s.getMyBorrowingHandler.ServeHTTP(w, r)
 }
 
