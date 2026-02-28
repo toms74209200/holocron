@@ -24,7 +24,7 @@ function MyPageContent() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (error) {
-        throw new Error("借りている本の取得に失敗しました");
+        throw new Error(error.message ?? "借りている本の取得に失敗しました");
       }
       return (data?.items ?? []) as Borrowing[];
     },
