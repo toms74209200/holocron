@@ -18,6 +18,11 @@ const navItems = [
     href: "/lending",
     icon: "material-symbols:swap-horiz",
   },
+  {
+    label: "マイページ",
+    href: "/mypage",
+    icon: "material-symbols:person",
+  },
 ] as const;
 
 export const SidebarNavigation: React.FC = () => {
